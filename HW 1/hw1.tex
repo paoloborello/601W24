@@ -68,6 +68,7 @@
 \newcommand{\Xv}{\mathbf{X}}
 \newcommand{\Yv}{\mathbf{Y}}
 \newcommand{\Hj}{H_{-j}}
+\newcommand{\tr}[1]{\text{tr}\left[#1\right]}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -81,7 +82,6 @@
 		\vskip20pt
 		\large{
 			\textbf{name:} Paolo Borello\\
-            
             \textbf{email:} borello@umich.edu}
 	\end{center}
 
@@ -99,7 +99,37 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
-
+        \begin{enumerate}[(a)]
+            \item We have the multivariate linear regression model given by
+                    \begin{align*}
+                        \Yv = \Xv B + E
+                    \end{align*}
+                    with $\Yv$ an $N\times m$ matrix, $\Xv$ an $N\times p$ matrix, $B$ a $p\times m$ matrix and $E$ a $N\times m$ matrix where each row $\epsilon_i^\top\overset{\text{i.i.d.}}{\sim}\mathcal{N}_m\left(0,\Sigma\right)$.\\
+                    Now we have that
+                    \begin{align*}
+                        Y_i = B^\top X_i + \epsilon_i \sim \mathcal{N}_m\left(B^\top X_i, \Sigma\right)
+                    \end{align*}
+                    therefore our log-likelihood is given by
+                    \begin{align*}
+                        \ell\left(B,\Sigma\right) &= c + \frac{N}{2}\log\abs{\Sigma^{-1}} - \frac{1}{2}\tr{\sum_{i=1}^{N}\left(Y_i-B^\top X_i\right)^\top \Sigma^{-1}\left(Y_i-B^\top X_i\right)} = \\
+                        &= c + \frac{N}{2}\log\abs{\Sigma^{-1}} - \frac{1}{2}\tr{\Sigma^{-1}\sum_{i=1}^{N}\left(Y_i-B^\top X_i\right)\left(Y_i-B^\top X_i\right)^\top} = \\
+                        &= c + \frac{N}{2}\log\abs{\Sigma^{-1}} - \frac{1}{2}\tr{\Sigma^{-1} \left(\Yv-\Xv B\right)\left(\Yv-\Xv B\right)^\top}
+                    \end{align*}
+                    Now notice that our log-likelihood objective is strictly concave therefore setting the gradients with respect to our parameters yields the unique maximizer. Moreover, setting the gradient with respect to $\Sigma$ to 0 is equivalent to setting the gradient with respect to $\Sigma^{-1}$ to 0.\\
+                    Therefore taking the gradients with respect to $B$ and $\Sigma^{-1}$ yields
+                    \begin{align*}
+                        \nabla_B \ell\left(B,\Sigma\right) &= -\frac{1}{2}\nabla_B \tr{\Sigma^{-1} \left(\Yv-\Xv B\right)\left(\Yv-\Xv B\right)^\top} = \\
+                        &= -\frac{1}{2}\left[\nabla_B\left(\Yv-\Xv B\right)\right] \left(\Yv-\Xv B\right)\left(\Sigma^{-1}+\Sigma^{-1}\right) = \\
+                        &= \Xv^\top\left(\Yv-\Xv B\right)\Sigma^{-1} \overset{!}{=} 0 \implies \\
+                        \hat{B} &= \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\\
+                        \nabla_{\Sigma^{-1}} \ell\left(B,\Sigma\right) &= \frac{N}{2} \Sigma ^\top -\frac{1}{2} \left(\Yv-\Xv B\right)^\top\left(\Yv-\Xv B\right) = \\
+                        &=\frac{N}{2} \Sigma -\frac{1}{2} \left(\Yv-\Xv B\right)^\top\left(\Yv-\Xv B\right) = 0\implies\\
+                        \hat{\Sigma} &= \frac{1}{N}\left(\Yv-\Xv \hat{B}\right)^\top\left(\Yv-\Xv \hat{B}\right) = \\
+                        &= \frac{1}{N}\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right)^\top\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right) = \\
+                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)^\top\left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
+                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
+                    \end{align*}
+        \end{enumerate}
     \end{exercise}
 
     \newpage
