@@ -127,8 +127,21 @@
                         \hat{\Sigma} &= \frac{1}{N}\left(\Yv-\Xv \hat{B}\right)^\top\left(\Yv-\Xv \hat{B}\right) = \\
                         &= \frac{1}{N}\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right)^\top\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right) = \\
                         &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)^\top\left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
-                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
+                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv
                     \end{align*}
+            \item Now we define the $\text{RSS}$ as 
+                    \begin{align*}
+                        \text{RSS}(B) = \sum_{i=1}^{N} \left(Y_i^\top - X_i^\top B\right)\left(Y_i^\top - X_i^\top B\right)^\top
+                    \end{align*}
+                    Then taking the gradient with respect to $B$ we have
+                    \begin{align*}
+                        \nabla_B\text{RSS}(B) &= \sum_{i=1}^{N}-2\left[\nabla_B\left(Y_i^\top - X_i^\top B\right)\right]\left(Y_i^\top - X_i^\top B\right) = \\
+                        &= \sum_{i=1}^{N}-2 X_i \left(Y_i^\top - X_i^\top B\right) = \\
+                        &= -2\sum_{i=1}^{N}X_i Y_i^\top + 2 \left(\sum_{i=1}^{N} X_i X_i^\top\right) B = \\
+                        &= -2 \Xv^\top\Yv + 2 \Xv^\top\Xv B = 0 \implies\\
+                        \hat{B} &= \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv
+                    \end{align*}
+                    thus yielding the same estimator as the MLE from part (a).
         \end{enumerate}
     \end{exercise}
 
