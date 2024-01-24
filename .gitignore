@@ -357,3 +357,5 @@ rsconnect/
 
 # MacOS folder structure file
 .DS_Store
+
+.idea/*
