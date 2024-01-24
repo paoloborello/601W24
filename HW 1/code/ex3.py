@@ -3,6 +3,7 @@ import numpy as np
 
 def pad_vector(vec: np.array, pos: list, val=0) -> np.array:
     v_padded = vec
+    pos = sorted(pos)
     for p in pos:
         if p > len(vec):
             v_padded = np.append(v_padded, val)
@@ -15,7 +16,7 @@ def mra_euggm_ks(S: np.array, not_Edges: list, max_iter=1000, tol=1e-6) -> np.ar
     # initialize W and Theta
     W = S
     T = np.zeros_like(W)
-    # get number of nodes
+    # get number of nodes (or variables)
     p = np.shape(S)[0]
     conv_flag = False
     for n_iter in range(max_iter):
@@ -53,7 +54,6 @@ def mra_euggm_ks(S: np.array, not_Edges: list, max_iter=1000, tol=1e-6) -> np.ar
                 theta_12 = - beta * theta_22
                 theta_12[j] = theta_22
                 T[j] = theta_12
-
         # if converged break
         if conv_flag:
             break
@@ -62,7 +62,6 @@ def mra_euggm_ks(S: np.array, not_Edges: list, max_iter=1000, tol=1e-6) -> np.ar
         if norm < tol:
             conv_flag = True
         print(f"Iter {n_iter + 1} - Norm: {round(norm, 7)}")
-
     return W, T
 
 
