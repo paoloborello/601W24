@@ -359,3 +359,4 @@ rsconnect/
 .DS_Store
 
 .idea/*
+*.png
