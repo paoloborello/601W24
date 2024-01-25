@@ -19,6 +19,7 @@
 \usepackage{cleveref}
 \usepackage{xpatch}
 \usepackage[shortlabels]{enumitem}
+\usepackage{tikz}
 \xpretocmd{\algorithm}{\hsize=\linewidth}{}{}
 \definecolor{MBlue}{RGB}{0,39,76}
 \allowdisplaybreaks
@@ -69,6 +70,8 @@
 \newcommand{\Yv}{\mathbf{Y}}
 \newcommand{\Hj}{H_{-j}}
 \newcommand{\tr}[1]{\text{tr}\left[#1\right]}
+\newcommand{\Id}{\mathbf{I}}
+\newcommand{\ZeroM}{\mathbf{0}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -91,7 +94,162 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
-        
+        \begin{enumerate}[(a)]
+            \item Let us denote with $p_a, p_b, p_c$ the dimesionality of $X_a, X_b, X_c$ respectively. Note that $p_a+p_b+p_c=p$.\\
+                    Then we have that
+                    \begin{align*}
+                        \begin{pmatrix}
+                            X_a\\
+                            X_b
+                        \end{pmatrix} = 
+                        \begin{pmatrix}
+                            \Id_{p_a} & \ZeroM_{p_a\times p_b} & \ZeroM_{p_a\times p_c}\\
+                            \ZeroM_{p_b\times p_a} & \Id_{p_b} & \ZeroM_{p_b\times p_c}\\
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            X_a\\
+                            X_b\\
+                            X_c
+                        \end{pmatrix}
+                        = AX
+                    \end{align*}
+                    where $A$ is the block matrix composed of identities and zero matrices. Therefore
+                    \begin{align*}
+                        X\sim\mathcal{N}_p\left(\mu,\Sigma\right)\implies 
+                        \begin{pmatrix}
+                            X_a\\
+                            X_b
+                        \end{pmatrix}
+                        \sim\mathcal{N}_{p_a+p_b}\left(A\mu,A\Sigma A^\top\right)
+                    \end{align*}
+                    Now
+                    \begin{align*}
+                        A\mu &=
+                        \begin{pmatrix}
+                            \Id_{p_a} & \ZeroM_{p_a\times p_b} & \ZeroM_{p_a\times p_c}\\
+                            \ZeroM_{p_b\times p_a} & \Id_{p_b} & \ZeroM_{p_b\times p_c}\\
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            \mu_a\\
+                            \mu_b\\
+                            \mu_c
+                        \end{pmatrix} = 
+                        \begin{pmatrix}
+                            \mu_a\\
+                            \mu_b
+                        \end{pmatrix}\\
+                        A\Sigma A^\top &= 
+                        \begin{pmatrix}
+                            \Id_{p_a} & \ZeroM_{p_a\times p_b} & \ZeroM_{p_a\times p_c}\\
+                            \ZeroM_{p_b\times p_a} & \Id_{p_b} & \ZeroM_{p_b\times p_c}\\
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            \Sigma_{aa} & \Sigma_{ab} & \Sigma_{ac}\\
+                            \Sigma_{ba} & \Sigma_{bb} & \Sigma_{bc}\\
+                            \Sigma_{ca} & \Sigma_{cb} & \Sigma_{cc}
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            \Id_{p_a} & \ZeroM_{p_a\times p_b} \\
+                            \ZeroM_{p_b\times p_a} & \Id_{p_b}\\
+                            \ZeroM_{p_c\times p_a} & \ZeroM_{p_c\times p_b}
+                        \end{pmatrix} = \\
+                        &=
+                        \begin{pmatrix}
+                            \Sigma_{aa} & \Sigma_{ab} & \Sigma_{ac}\\
+                            \Sigma_{ba} & \Sigma_{bb} & \Sigma_{bc}\\
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            \Id_{p_a} & \ZeroM_{p_a\times p_b} \\
+                            \ZeroM_{p_b\times p_a} & \Id_{p_b}\\
+                            \ZeroM_{p_c\times p_a} & \ZeroM_{p_c\times p_b}
+                        \end{pmatrix} = \\
+                        &= 
+                        \begin{pmatrix}
+                            \Sigma_{aa} & \Sigma_{ab}\\
+                            \Sigma_{ba} & \Sigma_{bb}
+                        \end{pmatrix}
+                    \end{align*}
+                    thus
+                    \begin{align*}
+                        \begin{pmatrix}
+                            X_a\\
+                            X_b
+                        \end{pmatrix}
+                        \sim\mathcal{N}_{p_a+p_b}\left(
+                            \begin{pmatrix}
+                                \mu_a\\
+                                \mu_b 
+                            \end{pmatrix},
+                            \begin{pmatrix}
+                                \Sigma_{aa} & \Sigma_{ab}\\
+                                \Sigma_{ba} & \Sigma_{bb}
+                            \end{pmatrix}
+                            \right)
+                    \end{align*}
+                    Denote by $\tilde{\Sigma}$ this covariance matrix and by $\bar{\Sigma}$ its inverse
+                    \begin{align*}
+                        f_{X_a,X_b}(x_a, x_b) &= \left(2\pi\right)^{-(p_a+p_b)/2}
+                        \abs{\tilde{\Sigma}}^{-1/2}\\
+                        &\exp\left\{-\frac{1}{2}\left[\left(x_a-\mu_a\right)^\top \bar{\Sigma}_{aa} \left(x_a-\mu_a\right)+\right.\right.\\
+                        &\left(x_a-\mu_a\right)^\top \bar{\Sigma}_{ab} \left(x_b-\mu_b\right)+\\
+                        &\left(x_b-\mu_b\right)^\top \bar{\Sigma}_{ba} \left(x_a-\mu_a\right)+\\
+                        &\left.\left.\left(x_b-\mu_b\right)^\top \bar{\Sigma}_{bb} \left(x_b-\mu_b\right)\right]\right\}
+                    \end{align*}
+                    \begin{itemize}
+                        \item $\implies$\\
+                                Suppose $X_a\perp X_b$ then the joint density must factorize, therefore we must have
+                                \begin{align*}
+                                    \abs{\tilde{\Sigma}}^{-1/2} &= \abs{\tilde{\Sigma}_{aa}}^{-1/2}\abs{\tilde{\Sigma}_{bb}}^{-1/2}\\
+                                    &\left(x_a-\mu_a\right)^\top \bar{\Sigma}_{aa} \left(x_a-\mu_a\right) + \left(x_a-\mu_a\right)^\top \bar{\Sigma}_{ab} \left(x_b-\mu_b\right)+\\
+                                    &\,+\left(x_b-\mu_b\right)^\top \bar{\Sigma}_{ba} \left(x_a-\mu_a\right)+\left(x_b-\mu_b\right)^\top \bar{\Sigma}_{bb} \left(x_b-\mu_b\right) = \\
+                                    &\left(x_a-\mu_a\right)^\top \bar{\Sigma}_{aa} \left(x_a-\mu_a\right) + \left(x_b-\mu_b\right)^\top \bar{\Sigma}_{bb} \left(x_b-\mu_b\right)
+                                \end{align*}
+                                Since the second condition must hold for all $x_a\in\mathbb{R}^{p_a}, x_b\in\mathbb{R}^{p_b}$, then it must be $\bar{\Sigma}_{ab} = \ZeroM_{p_a\times p_b}$ and $\bar{\Sigma}_{ba} = \ZeroM_{p_b\times p_a}$, which in turn implies $\Sigma_{ab} = \ZeroM_{p_a\times p_b}$ and $\Sigma_{ba} = \ZeroM_{p_b\times p_a}$
+                        \item $\impliedby$\\
+                                The argument follows easily from the fact that $\Sigma_{ab} = \ZeroM_{p_a\times p_b}$ and $\Sigma_{ba} = \ZeroM_{p_b\times p_a}$ implies $\bar{\Sigma}_{ab} = \ZeroM_{p_a\times p_b}$ and $\bar{\Sigma}_{ba} = \ZeroM_{p_b\times p_a}$.\\
+                                This trivially leads to the factorization of the exponential argument as well as the factorization of the determinant.
+                    \end{itemize}
+            \item c
+            \item The graphs are
+                    \begin{center}
+                        \begin{tikzpicture}
+                            % Nodes
+                            \foreach \i/\j/\k in {1/0/0, 2/1.4/0, 3/0/-1.4, 4/1.4/-1.4} {
+                              \node[circle, draw, minimum size=8mm] (\i) at (\j,\k) {$X_{\i}$};
+                            }
+                            % Edges
+                            \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,2,3} {
+                                \draw (\i) -- (\j);
+                            }
+                            % Label
+                            \node[draw=none, fill=none] at (0.7,-2.2) {Graph a};
+                        \end{tikzpicture}
+                        \vskip10pt
+                        \begin{tikzpicture}
+                            % Nodes
+                            \foreach \i/\j/\k in {1/0/0, 2/1.4/0, 3/0/-1.4, 4/1.4/-1.4} {
+                              \node[circle, draw, minimum size=8mm] (\i) at (\j,\k) {$X_{\i}$};
+                            }
+                            % Edges
+                            \foreach \source/\target in {1/2, 2/3, 1/3, 3/4} {
+                              \draw (\source) -- (\target);
+                            }
+                            \node[draw=none, fill=none] at (0.7,-2.2) {Graph b};
+                        \end{tikzpicture}
+                        \vskip10pt
+                        \begin{tikzpicture}
+                            % Nodes
+                            \foreach \i/\j/\k in {1/0/0, 2/1.4/0, 3/0/-1.4, 4/1.4/-1.4} {
+                              \node[circle, draw, minimum size=8mm] (\i) at (\j,\k) {$X_{\i}$};
+                            }
+                            % Edges
+                            \foreach \source/\target in {1/2, 2/3, 2/4} {
+                              \draw (\source) -- (\target);
+                            }
+                            \node[draw=none, fill=none] at (0.7,-2.2) {Graph c};
+                        \end{tikzpicture}
+                    \end{center}
+        \end{enumerate}
     \end{exercise}
 
     \newpage
@@ -126,8 +284,13 @@
                         &=\frac{N}{2} \Sigma -\frac{1}{2} \left(\Yv-\Xv B\right)^\top\left(\Yv-\Xv B\right) = 0\implies\\
                         \hat{\Sigma} &= \frac{1}{N}\left(\Yv-\Xv \hat{B}\right)^\top\left(\Yv-\Xv \hat{B}\right) = \\
                         &= \frac{1}{N}\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right)^\top\left(\Yv-\Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\right) = \\
-                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)^\top\left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
-                        &= \frac{1}{N}\Yv^\top \left(I_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv
+                        &= \frac{1}{N}\Yv^\top \left(\Id_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)^\top\left(\Id_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv = \\
+                        &= \frac{1}{N}\Yv^\top \left(\Id_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv
+                    \end{align*}
+                    Therefore
+                    \begin{align*}
+                        \hat{B} &= \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\Yv\\
+                        \hat{\Sigma} &= \frac{1}{N}\Yv^\top \left(\Id_N - \Xv \left(\Xv^\top\Xv\right)^{-1}\Xv^\top\right)\Yv
                     \end{align*}
             \item Now we define the $\text{RSS}$ as 
                     \begin{align*}
