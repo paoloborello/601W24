@@ -17,6 +17,7 @@
 \usepackage{bm}
 \usepackage[breaklinks=true,colorlinks,linkcolor=magenta,urlcolor=magenta,citecolor=black]{hyperref}
 \usepackage{cleveref}
+\usepackage{hyperref}
 \usepackage{xpatch}
 \usepackage[shortlabels]{enumitem}
 \usepackage{tikz}
@@ -313,7 +314,7 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
-        Code is available at \url{https://github.com/paoloborello/601W24}
+        Code is also available at \url{https://github.com/paoloborello/601W24/tree/main/HW_1/code}
     \end{exercise}
 
     \newpage
@@ -321,7 +322,85 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
-
+        \begin{enumerate}[(a)]
+            \item We know from lecture that the MLE for $\left(\mu,\Sigma\right)$ when $X_i\overset{\text{i.i.d.}}{\sim}\mathcal{N}_p\left(\mu,\Sigma\right)$ is given by $\left(\bar{X}_N, S_N\right)$, where $\bar{X}_N$ is the sample mean vector and $S_N$ is the uncorrected sample covariance matrix.\\
+                    Therefore to get the LRT we still need to find the MLE under the null hypothesis
+                    \begin{align*}
+                        H_0: \mu=0
+                    \end{align*}
+                    therefore we want to solve
+                    \begin{align*}
+                        \argmax_{\Sigma} \ell(0,\Sigma) &= \argmax_{\Sigma}-\frac{N}{2}\log\abs{\Sigma}-\frac{1}{2}\sum_{i=1}^{N}X_i^\top\Sigma^{-1}X_i = \\
+                        &= \argmax_{\Sigma}-N\tr{\log\abs{\Sigma}}-\sum_{i=1}^{N}\tr{X_i^\top\Sigma^{-1}X_i} = \\
+                        &= \argmax_{\Sigma}N\tr{\log\abs{\Sigma^{-1}}}-\sum_{i=1}^{N}\tr{\Sigma^{-1}X_i X_i^\top}
+                    \end{align*}
+                    then taking the gradient with respect to $\Sigma^{-1}$ (this suffices to find the maximum by the same argument as in exercise 2) yields 
+                    \begin{align*}
+                        \nabla_{\Sigma^{-1}}\ell(\Sigma) = N\Sigma - \sum_{i=1}^{N} \left(X_i X_i^\top\right)^\top = 0 \implies \hat{\Sigma}_0 = \frac{1}{N}\sum_{i=1}^{N} X_i^\top X_i
+                    \end{align*}
+                    Thus the LRT takes the following form 
+                    \begin{align*}
+                        T_{\text{LRT}} &= -2\left[\ell\left(0,\hat{\Sigma}_0\right)-\ell\left(\bar{X}_n,S_N\right)\right] = \\
+                        &= N\log\abs{\hat{\Sigma}_0}+\sum_{i=1}^{N}X_i^\top\hat{\Sigma}_0^{-1}X_i - N\log\abs{S_N}+\sum_{i=1}^{N}\left(X_i-\bar{X}_N\right)^\top S_N^{-1}\left(X_i-\bar{X}_N\right) = \\
+                        &= N\log\frac{\abs{\hat{\Sigma}_0}}{\abs{S_N}} + \sum_{i=1}^{N} X_i^\top\hat{\Sigma}_0^{-1}X_i - \left(X_i-\bar{X}_N\right)^\top S_N^{-1}\left(X_i-\bar{X}_N\right)
+                    \end{align*}
+                    Now notice that
+                    \begin{align*}
+                        S_N &= \frac{1}{N}\sum_{i=1}^{N}\left(X_i-\bar{X}_N\right)\left(X_i-\bar{X}_N\right)^\top = \\
+                        &= \frac{1}{N}\sum_{i=1}^{N}X_i X_i^\top - \bar{X}_N X_i^\top - X_i\bar{X}_N^\top + \bar{X}_N\bar{X}_N^\top = \\
+                        &= \left(\frac{1}{N}\sum_{i=1}^{N}X_i X_i^\top\right) - \bar{X}_N \bar{X}_N^\top - \bar{X}_N \bar{X}_N^\top + \bar{X}_N\bar{X}_N^\top = \\
+                        &= \hat{\Sigma}_0 - \bar{X}_N \bar{X}_N^\top
+                    \end{align*}
+                    Then applying the \href{https://en.wikipedia.org/wiki/Matrix_determinant_lemma}{matrix determinant lemma} we have that
+                    \begin{align*}
+                        \abs{\hat{\Sigma}_0} = \abs{S_N + \bar{X}_N \bar{X}_N^\top} = \abs{S_N}\left(1+\bar{X}_N^\top S_N^{-1}\bar{X}_N\right)
+                    \end{align*}
+                    therefore
+                    \begin{align*}
+                        \frac{\abs{\hat{\Sigma}_0}}{\abs{S_N}} = 1+\bar{X}_N^\top S_N^{-1}\bar{X}_N
+                    \end{align*}
+                    Now moving to the sample covariance $\tilde{S}_N$ we have that
+                    \begin{align*}
+                        \tilde{S}_N = \frac{N}{N-1}S_N
+                    \end{align*}
+                    therefore
+                    \begin{align*}
+                        \frac{\abs{\hat{\Sigma}_0}}{\abs{S_N}} = 1+N\bar{X}_N^\top \tilde{S}_N^{-1}\bar{X}_N\frac{1}{N-1}= 1+\frac{T^2}{N-1}
+                    \end{align*}
+                    then by \href{https://en.wikipedia.org/wiki/Sherman%E2%80%93Morrison_formula}{Sherman-Morisson formula} we have that
+                    \begin{align*}
+                        \hat{\Sigma}_0^{-1} &= \left(S_N + \bar{X}_N \bar{X}_N^\top\right)^{-1} = S_N^{-1} - \frac{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}
+                    \end{align*}
+                    therefore
+                    \begin{gather*}
+                        \sum_{i=1}^{N} X_i^\top\hat{\Sigma}_0^{-1}X_i - \left(X_i-\bar{X}_N\right)^\top S_N^{-1}\left(X_i-\bar{X}_N\right) =\\
+                        = \sum_{i=1}^{N} X_i^\top S_N^{-1}X_i - X_i^\top \frac{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N} X_i - \left(X_i-\bar{X}_N\right)^\top S_N^{-1}\left(X_i-\bar{X}_N\right) = \\
+                        = \left(-\sum_{i=1}^{N} X_i^\top \frac{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N} X_i\right) + N  \bar{X}_N^\top S_N^{-1}\bar{X}_N
+                    \end{gather*}
+                    Now
+                    \begin{align*}
+                        -\sum_{i=1}^{N} X_i^\top \frac{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N} X_i &= - \tr{\sum_{i=1}^{N}X_i^\top \frac{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N} X_i} =\\
+                        &= -\frac{1}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1} \sum_{i=1}^{N}X_i X_i^\top} =\\
+                        &= -\frac{1}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{N S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1} \hat{\Sigma}_0} = \\
+                        &= -\frac{N}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1} \left(S_N + \bar{X}_N \bar{X}_N^\top\right)} = \\
+                        &= -\frac{N}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{S_N^{-1}\bar{X}_N \bar{X}_N^\top + S_N^{-1}\bar{X}_N \bar{X}_N^\top S_N^{-1}\bar{X}_N \bar{X}_N^\top} = \\
+                        &= -\frac{N}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{\bar{X}_N^\top S_N^{-1}\bar{X}_N + \bar{X}_N^\top S_N^{-1}\bar{X}_N\bar{X}_N^\top S_N^{-1}\bar{X}_N} = \\
+                        &= -\frac{N}{1+ \bar{X}_N^\top S_N^{-1}\bar{X}_N}\tr{\left(1+\bar{X}_N^\top S_N^{-1}\bar{X}_N\right) \bar{X}_N^\top S_N^{-1}\bar{X}_N} = \\
+                        &= -N\bar{X}_N^\top S_N^{-1}\bar{X}_N
+                    \end{align*}
+                    thus
+                    \begin{align*}
+                        \sum_{i=1}^{N} X_i^\top\hat{\Sigma}_0^{-1}X_i - \left(X_i-\bar{X}_N\right)^\top S_N^{-1}\left(X_i-\bar{X}_N\right) = - N \bar{X}_N^\top S_N^{-1}\bar{X}_N + N \bar{X}_N^\top S_N^{-1}\bar{X}_N = 0
+                    \end{align*}
+                    therefore the LRT is 
+                    \begin{align*}
+                        T_{\text{LRT}} &= N\log\left(1+\frac{T^2}{N-1}\right) = -N\log\frac{1}{1+\frac{T^2}{N-1}}
+                    \end{align*}
+                    then the likelihood Ratio itself is given by
+                    \begin{align*}
+                        \frac{\mathcal{L}\left(0,\hat{\Sigma}_0\right)}{\mathcal{L}\left(\bar{X}_N,S_N\right)} = \exp\left\{-\frac{T_{\text{LRT}}}{2}\right\} = \exp\left\{\frac{N}{2}\log\frac{1}{1+\frac{T^2}{N-1}}\right\} = \left(\frac{1}{1+\frac{T^2}{N-1}}\right)^{N/2}
+                    \end{align*}
+        \end{enumerate}
     \end{exercise}
 
 \end{document}
