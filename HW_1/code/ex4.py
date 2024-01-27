@@ -1,5 +1,5 @@
 import numpy as np
-import scipy.stats
+import scipy
 import matplotlib.pyplot as plt
 
 
@@ -56,4 +56,3 @@ if __name__ == '__main__':
         # save figure and clear plot
         plt.savefig(f"../images/ex4_{p}.png")
         plt.show()
-
