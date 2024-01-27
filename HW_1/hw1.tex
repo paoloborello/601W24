@@ -400,6 +400,109 @@
                     \begin{align*}
                         \frac{\mathcal{L}\left(0,\hat{\Sigma}_0\right)}{\mathcal{L}\left(\bar{X}_N,S_N\right)} = \exp\left\{-\frac{T_{\text{LRT}}}{2}\right\} = \exp\left\{\frac{N}{2}\log\frac{1}{1+\frac{T^2}{N-1}}\right\} = \left(\frac{1}{1+\frac{T^2}{N-1}}\right)^{N/2}
                     \end{align*}
+            \item Since $S_N$ is p.s.d. by construction
+                    \begin{align*}
+                        T^2 = N\bar{X}_N^\top S_N^{-1}\bar{X}_N = N\bar{X}_N^\top S_N^{-1/2} S_N^{-1/2}\bar{X}_N = \norm{\sqrt{N}S_N^{-1/2}\bar{X}_N}_2^2
+                    \end{align*}
+                    Under $H_0:\mu=0$, we have
+                    \begin{align*}
+                        \sqrt{N}\bar{X}_N&\overset{\text{d}}{\longrightarrow}\mathcal{N}_p(0,\Sigma)\\
+                        S_N&\overset{\mathbb{P}}{\longrightarrow}\Sigma \implies S_N^{-1/2}\overset{\mathbb{P}}{\longrightarrow}\Sigma^{-1/2}
+                    \end{align*}
+                    then by Slutsky
+                    \begin{align*}
+                        \sqrt{N}S_N^{-1/2}\bar{X}_N\overset{\text{d}}{\longrightarrow}\mathcal{N}_p\left(0,\Id_p\right)\implies \norm{\sqrt{N}S_N^{-1/2}\bar{X}_N}_2^2\overset{\text{d}}{\longrightarrow}\chi^2_p
+                    \end{align*}
+            \item For each significance level, I plot the empirical estimate of type I error
+                    \begin{center}
+                        \includegraphics[width=.7\linewidth]{ex4_3.png}
+                    \end{center}
+                    I ran 1000 replications and we can see that we are quite able to control for type I error at all significance levels.
+            \item For each significance level, I plot the empirical estimate of type I error
+                    \begin{center}
+                        \includegraphics[width=.7\linewidth]{ex4_10.png}
+                        \includegraphics[width=.7\linewidth]{ex4_40.png}
+                        \includegraphics[width=.7\linewidth]{ex4_80.png}
+                    \end{center}
+                    Now we can see that as dimesionality increases we are not able to control for type I error anymore.
+            \item Let $\left\{a_j\right\}_{j\in\left[p\right]}$ and $\left\{b_k\right\}_{k\in\left[N-p\right]}$ be two sequences of independent $\chi_1^2$ rvs. Then
+                    \begin{align*}
+                        \mean{a_j} &= \mean{b_k} = 1\\
+                        \var{a_j} &= \var{b_k} = 2
+                    \end{align*}
+                    therefore
+                    \begin{align*}
+                        \bar{a}&\coloneq\frac{1}{p}\sum_{j=1}^{p}a_j\sim\frac{\chi_p^2}{p}\\
+                        \bar{b}&\coloneq\frac{1}{N-p}\sum_{k=1}^{N-p}b_k\sim\frac{\chi_{N-p}^2}{N-p}
+                    \end{align*}
+                    By the Central Limit Theorem we have 
+                    \begin{align*}
+                        \sqrt{p}(\bar{a}-1)&\overset{d}{\longrightarrow}\mathcal{N}(0,2), p\rightarrow\infty\\
+                        \sqrt{N-p}(\bar{b}-1)&\overset{d}{\longrightarrow}\mathcal{N}(0,2), N\rightarrow\infty, p\rightarrow\infty, \frac{p}{N}\longrightarrow\gamma\in(0,1)
+                    \end{align*}
+                    which implies
+                    \begin{align*}
+                        \sqrt{N}(\bar{a}-1)&\overset{d}{\longrightarrow}\mathcal{N}\left(0,\frac{2}{\gamma}\right)\\
+                        \sqrt{N}(\bar{b}-1)&\overset{d}{\longrightarrow}\mathcal{N}\left(0,\frac{2}{1-\gamma}\right)
+                    \end{align*}
+                    and by independence we have
+                    \begin{align*}
+                        \sqrt{N}
+                        \begin{pmatrix}
+                            \begin{pmatrix}
+                                \bar{a}\\
+                                \bar{b}
+                            \end{pmatrix}-
+                            \begin{pmatrix}
+                                1\\
+                                1
+                            \end{pmatrix}
+                        \end{pmatrix}
+                        \overset{d}{\longrightarrow}\mathcal{N}_2
+                        \begin{pmatrix}
+                            \begin{pmatrix}
+                                0\\
+                                0
+                            \end{pmatrix},
+                            \begin{pmatrix}
+                                \frac{2}{\gamma} & 0\\
+                                0 & \frac{2}{1-\gamma}
+                            \end{pmatrix}
+                        \end{pmatrix}
+                    \end{align*}
+                    Then let $g(x,y) = x/y$ 
+                    \begin{align*}
+                        \nabla g(x,y) &=
+                        \begin{pmatrix}
+                            \frac{1}{y}\\
+                            -\frac{x}{y^2}
+                        \end{pmatrix}\\
+                        \nabla g(1,1) &=
+                        \begin{pmatrix}
+                            1\\
+                            -1
+                        \end{pmatrix}\\
+                        \nabla g(1,1)^\top 
+                        \begin{pmatrix}
+                            \frac{2}{\gamma} & 0\\
+                            0 & \frac{2}{1-\gamma}
+                        \end{pmatrix}
+                        \nabla g(1,1) &= \frac{2}{\gamma}+\frac{2}{1-\gamma}=\\
+                        &= \frac{2}{\gamma(1-\gamma)}
+                    \end{align*}
+                    and using the delta method
+                    \begin{align*}
+                        \sqrt{N}\left(\frac{\bar{a}}{\bar{b}}-1\right)\overset{d}{\longrightarrow}\mathcal{N}\left(0,\frac{2}{\gamma(1-\gamma)}\right)
+                    \end{align*}
+                    Now since 
+                    \begin{align*}
+                        \frac{\bar{a}}{\bar{b}}\sim\frac{\chi_p^2}{\chi_{N-p}^2} \overset{d}{=} F_{p,N-p} \sim \frac{N-p}{p(N-1)}T^2
+                    \end{align*}
+                    then
+                    \begin{align*}
+                        \sqrt{N}\left(\frac{N-p}{p(N-1)}T^2-1\right)\overset{d}{\longrightarrow}\mathcal{N}\left(0,\frac{2}{\gamma(1-\gamma)}\right)
+                    \end{align*}
+            \item In the case that $p>N$, then our design matrix will not be full rank and hence $S_N$ will not be invertible, thus we cannot compute $T^2$.
         \end{enumerate}
     \end{exercise}
 
