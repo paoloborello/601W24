@@ -210,7 +210,62 @@
                                 The argument follows easily from the fact that $\Sigma_{ab} = \ZeroM_{p_a\times p_b}$ and $\Sigma_{ba} = \ZeroM_{p_b\times p_a}$ implies $\bar{\Sigma}_{ab} = \ZeroM_{p_a\times p_b}$ and $\bar{\Sigma}_{ba} = \ZeroM_{p_b\times p_a}$.\\
                                 This trivially leads to the factorization of the exponential argument as well as the factorization of the determinant.
                     \end{itemize}
-            \item c
+            \item Denote by $\tilde{X} = \left(X_a, X_b\right)^\top$, then from class
+                    \begin{align*}
+                        \Sigma_{\tilde{X}} &= \tilde{\Sigma} - \Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}\Sigma_{c\tilde{X}}\\
+                        \tilde{\Sigma} &= 
+                        \begin{pmatrix}
+                            \Sigma_{aa} & \Sigma_{ab}\\
+                            \Sigma_{ba} & \Sigma_{bb}
+                        \end{pmatrix}
+                    \end{align*}
+                    and
+                    \begin{align*}
+                        \begin{pmatrix}
+                            \tilde{X} - \Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}X_c\\
+                            X_c
+                        \end{pmatrix} =
+                        \begin{pmatrix}
+                            \Id_{p_a+p_b} & \Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}\\
+                            \ZeroM_{p_c\times(p_a+p_b)} & \Id_{p_c}
+                        \end{pmatrix}
+                        \begin{pmatrix}
+                            \tilde{X}\\
+                            X_c
+                        \end{pmatrix}
+                        \sim\mathcal{N}_p
+                        \begin{pmatrix}
+                            \begin{pmatrix}
+                                \tilde{\mu} - \Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}\mu_c\\
+                                \mu_c
+                            \end{pmatrix},
+                            \begin{pmatrix}
+                                \Sigma_{\tilde{X}} & \ZeroM_{(p_a+p_b)\times p_c}\\
+                                \ZeroM_{p_c\times(p_a+p_b)} & \Sigma_{cc}
+                            \end{pmatrix}
+                        \end{pmatrix}
+                    \end{align*}
+                    with
+                    \begin{align*}
+                        \tilde{X}\mid X_c\sim\mathcal{N}_{p_a+p_b}\left(\tilde{\mu}+\Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}X_c, \Sigma_{\tilde{X}}\right)
+                    \end{align*}
+                    Note that
+                    \begin{align*}
+                        \Theta = \Sigma^{-1} =
+                        \begin{pmatrix}
+                            \Sigma_{\tilde{X}\tilde{X}} & \Sigma_{\tilde{X}c}\\
+                            \Sigma_{c\tilde{X}} & \Sigma_{cc}
+                        \end{pmatrix} \implies \Theta^{-1}_{\tilde{X}\tilde{X}} = \Sigma_{\tilde{X}\tilde{X}}-\Sigma_{\tilde{X}c}\Sigma_{cc}^{-1}\Sigma_{c\tilde{X}} = \Sigma_{\tilde{X}}
+                    \end{align*}
+                    therefore we have that the conditional covariance matrix of $\tilde{X}$ is given by 
+                    \begin{align*}
+                        \Sigma_{\tilde{X}} = 
+                        \begin{pmatrix}
+                            \Theta_{aa} & \Theta_{ab}\\
+                            \Theta_{ba} & \Theta_{bb}
+                        \end{pmatrix}^{-1}
+                    \end{align*}
+                    Now we can use (a) and the fact that $\Theta_{ab} = \Theta_{ba} = 0\iff$ the corresponding entries of $ \Sigma_{\tilde{X}}$ are null. Now using (a), we immediately retrieve the result.
             \item The graphs are
                     \begin{center}
                         \begin{tikzpicture}
@@ -502,7 +557,25 @@
                     \begin{align*}
                         \sqrt{N}\left(\frac{N-p}{p(N-1)}T^2-1\right)\overset{d}{\longrightarrow}\mathcal{N}\left(0,\frac{2}{\gamma(1-\gamma)}\right)
                     \end{align*}
-            \item In the case that $p>N$, then our design matrix will not be full rank and hence $S_N$ will not be invertible, thus we cannot compute $T^2$.
+            \item In the case that $p>N$, then our design matrix will not be full rank and hence $S_N$ will not be invertible, thus we cannot compute $T^2$.\\
+                    Then a possible approach would be to use a form of parametric bootstrap. In particular I chose as my test statistic 
+                    \begin{align*}
+                        T_b = \sum_{j=1}^{p} \abs{X_N}_j = \frac{1}{N}\sum_{j=1}^{p}\abs{\sum_{i=1}^{N} X_{ij}}
+                    \end{align*}
+                    that is after computing the sample mean and applying the absolute value element-wise, we sum every coordinate.\\
+                    Our goal is to now approximate the distribution of $T_b$ under the null hypothesis
+                    \begin{align*}
+                        H_0: X_i\sim\mathcal{N}_p(0,\Sigma)
+                    \end{align*}
+                    To do this I use parametric bootstrap, in the sense that I approximate $\Sigma$ with $S_N$ since it is still our MLE even in the high-dimesional case.\\
+                    Then I generate bootstrap samples $X_i\sim\mathcal{N}_p\left(0,S_N\right)$ of size $n=100$ and for each sample I compute the test statistic $T_b$. The number of bootstrap replicates chosen is 10000. Then we reject the null hypothesis whenever our observed statistic is greater than the $(1-\alpha)$-quantile of our bootstrap statistic empirical distribution.\\
+                    Note that if we want to estimate the type-I error then for each simulation we run, we have to estimate a new bootstrap distribution since our covariance matrix is changing. This hinders the computational efficiency of our method, but notice that this is just performed to study whether the method can control for type-I error while in a practical testing scenario one would have to run the bootstrap just once.\\
+                    After running the simulation study we observe the following
+                    \begin{center}
+                        \includegraphics[width=.7\linewidth]{ex4_120.png}
+                    \end{center}
+                    therefore we are able to acceptably control for type-I error up to the $60\%$ significance level. In particular, for low significances it seems that our testing procedure is slightly over-conservative.\\
+                    NOTE: the plot was generated using 10000 bootstrap samples and 300 simulations. In this configuration, my code takes 3 hours or so to run. For computational times and ease of reproducibility I reduced these to be 1000 and 100 respectively.
         \end{enumerate}
     \end{exercise}
 
