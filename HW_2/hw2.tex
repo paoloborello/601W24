@@ -1,0 +1,128 @@
+\documentclass[10pt,notitlepage]{article}
+%Mise en page
+\usepackage[left=1.5cm, right=1.5cm, lines=45, top=0.8in, bottom=0.7in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{float}
+\pagestyle{fancy}
+\usepackage[most,breakable]{tcolorbox}
+\usepackage{pdfcol,xcolor}
+\usepackage{tikz}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{graphicx} %Loading the package
+\graphicspath{{./images/}}
+\usepackage{dsfont}
+\usepackage{amssymb,amsmath,mathtools}
+\usepackage{xspace}
+\usepackage[normalem]{ulem}
+\usepackage{bm}
+\usepackage[breaklinks=true,colorlinks,linkcolor=magenta,urlcolor=magenta,citecolor=black]{hyperref}
+\usepackage{cleveref}
+\usepackage{hyperref}
+\usepackage{xpatch}
+\usepackage[shortlabels]{enumitem}
+\usepackage{tikz}
+\xpretocmd{\algorithm}{\hsize=\linewidth}{}{}
+\definecolor{MBlue}{RGB}{0,39,76}
+\allowdisplaybreaks
+
+\newtcolorbox[auto counter]{exercise}[1][]{%
+	colback=yellow!10,
+	colframe=MBlue,
+	coltitle=white,
+	use color stack,
+	enforce breakable,
+	enhanced,
+	fonttitle=\bfseries,
+	before upper={\parindent15pt\noindent}, 
+	title={\color{white} #1}
+}
+
+\lhead{
+	\textbf{University of Michigan}
+}
+\rhead{
+	\textbf{Winter 24}
+}
+\chead{
+	\textbf{STATS 601}
+}
+\lfoot{}
+\cfoot{Paolo Borello, borello@umich.edu}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\MBlue}[1]{{\color{MBlue}#1}}
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\magenta}[1]{{\color{magenta}#1}}
+\newcommand{\green}[1]{{\color{green}#1}}
+\newcommand{\ans}[1]{{\color{orange}\textsf{Ans}: #1}}
+
+
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\prob}[1]{\mathbb{P}\left(#1\right)}
+\newcommand{\mean}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\var}[1]{\mathbb{V}\text{ar}\left(#1\right)}
+\newcommand{\cov}[1]{\mathbb{C}\text{ov}\left(#1\right)}
+\newcommand{\sign}[1]{\text{sign}\left(#1\right)}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\corr}[1]{\text{corr}\left(#1\right)}
+\newcommand{\Xv}{\mathbf{X}}
+\newcommand{\Yv}{\mathbf{Y}}
+\newcommand{\Hj}{H_{-j}}
+\newcommand{\tr}[1]{\text{tr}\left[#1\right]}
+\newcommand{\Id}{\mathbf{I}}
+\newcommand{\ZeroM}{\mathbf{0}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+
+
+%===========================================================
+\begin{document}
+	\begin{center}
+		\huge{\MBlue{\textbf{Homework 2}}}		
+		\vskip20pt
+		\large{
+			\textbf{name:} Paolo Borello\\
+            \textbf{email:} borello@umich.edu}
+	\end{center}
+
+    \vskip20pt
+    \noindent
+    \textbf{\large \MBlue{Exercise 1}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 2}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 3}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 4}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 5}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+\end{document}
