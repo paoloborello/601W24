@@ -1,0 +1,10 @@
+---
+title: "HW 2"
+author: "Paolo Borello"
+date: "2024-01-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
