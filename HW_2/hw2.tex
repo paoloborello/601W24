@@ -102,6 +102,64 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        We want to solve
+        \begin{align*}
+            \min_{U, \mu, X}& \sum_{i=1}^{N}\norm{Y_i - \mu - U X_i}_2^2\\
+            \text{subject to }& U^\top U = \Id
+        \end{align*}
+        Let writing the Laplacian (and using the trace for ease of calculation)
+        \begin{align*}
+            f\left(\mu, U, X, \Lambda\right) = \sum_{i=1}^{N} \tr{\left(Y_i - \mu - U X_i\right)^\top \left(Y_i - \mu - U X_i\right)} + \tr{\Lambda\left(U^\top U -\Id\right)}
+        \end{align*}
+        then let us fix the stationarity conditions
+        \begin{align*}
+            \displaystyle\frac{\partial f}{\partial \mu} &= -2\sum_{i=1}^{N}\left(Y_i - \mu - U X_i\right)=0\\
+            \displaystyle\frac{\partial f}{\partial U} &= -2\sum_{i=1}^{N}\left[\left(Y_i - \mu - U X_i\right)X_i^\top\right]-2\Lambda U=0\\
+            \displaystyle\frac{\partial f}{\partial X_i} &= -2 U^\top \left(Y_i - \mu - U X_i\right)=0\\
+            \displaystyle\frac{\partial f}{\partial \Lambda} &= \left(U^\top U -\Id\right)=0
+        \end{align*}
+        Now from the last equation
+        \begin{align}\label{eqn:orth}
+            \frac{\partial f}{\partial \Lambda}=0\implies U^\top U = \Id
+        \end{align}
+        we can use this in the third to get 
+        \begin{align}\label{eqn:X}
+            \frac{\partial f}{\partial X_i}=0\implies  X_i = U^\top\left(Y_i-\mu\right) 
+        \end{align}
+        Now the second equation becomes
+        \begin{align}\label{eqn:X}
+            \frac{\partial f}{\partial U}=0\implies \sum_{i=1}^{N}\left[\left(Y_i - \mu - U X_i\right)X_i^\top\right]+\Lambda U=0 
+        \end{align}
+        while the first
+        \begin{align*}
+            \frac{\partial f}{\partial \mu}=0\implies \mu &= \frac{1}{N}\sum_{i=1}^{N}Y_i-UX_i =\\
+            &= \frac{1}{N}\sum_{i=1}^{N}Y_i- UU^\top\left(Y_i-\mu\right) = \\
+            &= \left(\Id - UU^\top\right)\bar{Y} + UU^\top \mu
+        \end{align*}
+        which implies
+        \begin{align}\label{eqn:mu}
+            \left(\Id - UU^\top\right)\mu &= \left(\Id - UU^\top\right)\bar{Y}
+        \end{align}
+        Now assume that the solution to the optimization problem is given by
+        \begin{align*}
+            \hat{\mu} &= \bar{Y}\\
+            \hat{X_i} &= \hat{U}^\top\left(Y_i-\hat{\mu}\right) = \hat{U}^\top\left(Y_i-\bar{Y}\right)\\
+            \hat{U} &\mid S = \hat{U} D \hat{U}^\top\\
+            \hat{\Lambda} &= 0
+        \end{align*}
+        Then we just need to check that the stationarity conditions hold at our proposed solution.\\
+        Indeed (\ref{eqn:orth}) is satisfied by the definition of eigenvalue decomposition, while (\ref{eqn:X}) is satisfied by definition of $\hat{X_i}$ and (\ref{eqn:mu}) by the definition of $\hat{\mu}$.
+        Then from (\ref{eqn:X}) 
+        \begin{align*}
+            \sum_{i=1}^{N}\left[\left(Y_i - \hat{\mu} - \hat{U} \hat{X_i}\right)\hat{X_i}^\top\right]+\hat{\Lambda} \hat{U} &= \sum_{i=1}^{N}\left[\left(Y_i - \bar{Y} - \hat{U} \hat{U}^\top\left(Y_i-\bar{Y}\right)\right)\left(Y_i-\bar{Y}\right)^\top\hat{U}\right]  =\\
+            &= \left(\Id - \hat{U}\hat{U}^\top\right)\sum_{i=1}^{N}\left(Y_i - \bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top \hat{U} =\\
+            &= \left(\Id - \hat{U}\hat{U}^\top\right)S \hat{U} =\\
+            &= \left(\Id - \hat{U}\hat{U}^\top\right) \hat{U} D \hat{U}^\top\hat{U} = \\
+            &= \left(\Id - \hat{U}\hat{U}^\top\right) \hat{U} D \overset{\text{proj.}}{=} 0
+        \end{align*}
+        where the last equality stems from the properties of projection matrices.\\
+        Therefore our proposed solution is a stationary point and thus a solution of our optimization problem.
+
     \end{exercise}
 
     \newpage
@@ -116,6 +174,58 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        \begin{enumerate}[(a)]
+            \item From FA model assumptions we have that
+                    \begin{align*}
+                        Y = \mu + \Lambda^\star X + W \iff Y\sim\mathcal{N}(\mu, \Lambda^\star\Lambda^{\star^\top}+\Psi)
+                    \end{align*}
+                    with $X\sim\mathcal{N}(0,\Lambda^\star), W\sim\mathcal{N}(0,\Psi)$.\\
+                    Then we want to show that orthogonal transformations of $\Lambda^\star$ lead to unidenfiability.
+                    \begin{itemize}
+                        \item Let us apply an orthonormal transformation $O$ to $\Lambda^{\star^\top}$ and $X$, then we have that
+                                \begin{align*}
+                                    Y_i = \mu + \Lambda^\star O^\top O X_i + W = \mu + \Lambda^\star X_i + W
+                                \end{align*}
+                                therefore an orthonormal transformation of the factor loadings and factors mantains our $Y$ invariant
+                        \item Assume $\Lambda^\star \Lambda{^\star}^\top = \tilde{\Lambda} \tilde{\Lambda}^\top$. Consider $O = \tilde{\Lambda}^\top \Lambda{^\star} (\Lambda{^\star}^\top \Lambda{^\star})^{-1}$. Then, 
+                                \begin{align*}
+                                    O^\top O = \left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1} \Lambda{^\star}^\top \tilde{\Lambda} \tilde{\Lambda}^\top \Lambda{^\star}\left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1} = \left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1} \Lambda{^\star}^\top \Lambda{^\star}\Lambda{^\star}^\top \Lambda{^\star}\left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1}  = \Id
+                                \end{align*}
+                                so $O$ orthogonal. Also, 
+                                \begin{align*}
+                                    \tilde{\Lambda} O = \tilde{\Lambda} \tilde{\Lambda}^\top \Lambda{^\star} \left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1} =\Lambda{^\star}\Lambda{^\star}^\top \Lambda{^\star}\left(\Lambda{^\star}^\top \Lambda{^\star}\right)^{-1} =  \Lambda{^\star}
+                                \end{align*}
+                                thus the matrices are one the orthogonal transformation of the other.
+                    \end{itemize}
+                    Therefore our problem is identifiable up to an orthonormal transformation.\\
+                    A useful distance to measure how close columns spaces of matrices $\hat{\Lambda}$ and $\Lambda^{\star}$ are would be to use a matrix norm on the respective projection matrices, that is, for example with Froebinius norm, 
+                    \begin{align*}
+                        d(\hat{\Lambda}, \Lambda^{\star}) = \norm{P_{\hat{\Lambda}} - P_{\Lambda^{\star}}}_F = \norm{\hat{\Lambda}(\hat{\Lambda}^\top\hat{\Lambda})^{-1}\hat{\Lambda}^\top - \Lambda^{\star}(\Lambda^{\star^\top}\Lambda^{\star})^{-1}\Lambda^{\star^\top}}_F
+                    \end{align*}
+            \item  We have that 
+                    \begin{align*}
+                        \begin{pmatrix}
+                            X \\ 
+                            Y
+                        \end{pmatrix} \overset{\text{i.i.d.}}{\sim} \mathcal{N}_{2}\left(
+                        \begin{pmatrix}
+                            0 \\ 
+                            \mu
+                        \end{pmatrix},
+                        \begin{bmatrix}
+                            \Id_2 & \Lambda^\top \\
+                            \Lambda & \Lambda\Lambda^\top + \Psi
+                        \end{bmatrix}
+                        \right)
+                    \end{align*}
+                    As we are trying to estimate the subspace of scores $X$, we are trying to find its conditional expectation in this model. \\
+                    From lecture notes results for conditional distributions of MVN distributions we have that
+                    \begin{align*}
+                        \mean{X\vert Y} &= 0 + \Lambda^\top(\Psi + \Lambda\Lambda^\top)^{-1}\left(Y-\mu\right) =\\
+                        &= \Lambda^\top(\Lambda\Lambda^\top + \Psi)^{-1}\left(Y-\mu\right)
+                    \end{align*}
+                    Plotting is present in the \texttt{.html} file.
+        \end{enumerate}
     \end{exercise}
 
     \newpage
