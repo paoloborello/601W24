@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 from scipy.stats import multivariate_normal
+import pandas as pd
 
 
 def gen_data(mu, Lambda, n=100, scale_1=1, scale_2=np.sqrt(0.4)):
@@ -30,14 +31,9 @@ def log_likelihood_FA_mmodel(mu, Lambda, Psi, Y):
     # helper matrix
     mean = mu
     cov = Lambda @ Lambda.T + Psi
-    # inv_cov = np.linalg.inv(cov)
-    # inv_cov = np.tile(inv_cov, (Y.shape[0], 1, 1))
-    # Y_norm = Y - np.tile(mean, (Y.shape[0], 1))
     # log-likelihood
-    ll = multivariate_normal.logpdf(Y, mean=mean, cov=cov).sum()
-    # ll = - (Y.shape[1] * np.log(2 * np.pi) + np.linalg.slogdet(cov)[1] +
-    #         np.einsum('ij,ijk,ik->', Y_norm, inv_cov, Y_norm))
-    return ll
+    ll = multivariate_normal.logpdf(Y, mean=mean, cov=cov)
+    return ll.sum()
 
 
 def E_step_FA_mmodel(mu, Lambda, Psi, Y):
@@ -46,7 +42,7 @@ def E_step_FA_mmodel(mu, Lambda, Psi, Y):
     #         Lambda: q x p factor loading matrix
     #         Psi: q x q error covariance matrix
     #         Y: n X q data vector
-    # returns: e_X: n x p latent variable means, each row is a mean vector
+    # returns: e_X: n x p latent variable means, each row is a mean vector E[X_i|Y_i]
     #          v_X: n x p x p latent variable "covariance" tensor,
     #               each slice over the first axis is a matrix E[X_i X_i^T|Y_i]
     # helper matrix
@@ -81,30 +77,72 @@ def M_step_FA_mmodel(Y, e_X, v_X):
     # error covariance matrix
     first_tens = np.einsum('ij,ik->ijk', Y_norm, Y_norm)
     second_tens = np.einsum('ij,ik->ijk',  e_X @ Lambda.T, Y_norm)
-    Psi = (first_tens - second_tens).mean(axis=0)
+    Psi = np.diag(np.diag((first_tens - second_tens).mean(axis=0)))
     return mu, Lambda, Psi
 
 
+def projection_norm(A, B):
+    # compute the Frobenius norm of difference between two projection matrices P_A and P_B
+    # inputs: A: q x p matrix
+    #         A: q x p matrix
+    # returns: ||A(A^t A)^{-1} A^t - B(B^t B)^{-1} B^t||_F
+    P_A = A @ np.linalg.inv(A.T @ A) @ A.T
+    P_B = B @ np.linalg.inv(B.T @ B) @ B.T
+    return np.linalg.norm(P_A - P_B, ord='fro')
+
+
 if __name__ == '__main__':
-    F = np.array([[1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 1, 1, 1, 1]], dtype=float).T
+    F = np.array([[1, 1, 1, 1, 0, 0, 0],
+                  [0, 0, 0, 1, 1, 1, 1]],
+                 dtype=float).T
     m = np.zeros(7)
     data = gen_data(m, F, n=100)
 
     # part a
-    nsim = 1000
+    nsim = 500
     max_iter = 1000
-    for sim in range(nsim):
-        Lambda_hat = F + np.random.normal(scale=0.01, size=F.shape)
+    sigmas = [0.001, 0.01, 0.1, 1, 10]
+    # sigmas = np.insert(np.linspace(0.1, 2, 20), 0, 0.01)
+    log_ls = np.zeros((len(sigmas), nsim))
+    for i, sigma in enumerate(tqdm(sigmas)):
+        for sim in range(nsim):
+            Lambda_hat = F + np.random.normal(scale=sigma, size=F.shape)
+            Psi_hat = np.eye(F.shape[0])
+            mu_hat = np.zeros(F.shape[0])
+            for _ in range(max_iter):
+                cond_E_X, cond_V_X = E_step_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
+                old_mu, old_Lambda, old_Psi = mu_hat, Lambda_hat, Psi_hat
+                mu_hat, Lambda_hat, Psi_hat = M_step_FA_mmodel(data, cond_E_X, cond_V_X)
+                if np.allclose(old_mu, mu_hat) and np.allclose(old_Lambda, Lambda_hat) and np.allclose(old_Psi, Psi_hat):
+                    log_l = log_likelihood_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
+                    log_ls[i, sim] = log_l
+                    break
+
+    print(f"""\n {pd.DataFrame({"sigma": sigmas, "log_l": log_ls.max(axis=1).round(3)})}""")
+
+    # part b
+    nsim = 1000
+    norms = np.zeros(nsim)
+    Lambda_estimates = []
+    for sim in tqdm(range(nsim)):
+        Lambda_hat = np.random.normal(scale=1, size=F.shape)
         Psi_hat = np.eye(F.shape[0])
         mu_hat = np.zeros(F.shape[0])
-
-        for i in range(max_iter):
+        for _ in range(max_iter):
             cond_E_X, cond_V_X = E_step_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
             old_mu, old_Lambda, old_Psi = mu_hat, Lambda_hat, Psi_hat
             mu_hat, Lambda_hat, Psi_hat = M_step_FA_mmodel(data, cond_E_X, cond_V_X)
             if np.allclose(old_mu, mu_hat) and np.allclose(old_Lambda, Lambda_hat) and np.allclose(old_Psi, Psi_hat):
-                log_l = log_likelihood_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
-                print(f'Sim {sim+1} converged at iteration {i+1}, final log-likelihood: {np.round(log_l,3)}')
+                norms[sim] = projection_norm(F, Lambda_hat)
+                Lambda_estimates.append(Lambda_hat)
                 break
 
-    # part b
+    best_Lambda = Lambda_estimates[np.argmin(norms)]
+    print(f"Estimate achieving minimal distance in column space:\n "
+          f"{best_Lambda}")
+    print(f"True factor matrix: \n {F}")
+    print(f"Log-likelihood of our estimate: "
+          f"{round(log_likelihood_FA_mmodel(mu_hat, best_Lambda, Psi_hat, data), 3)}")
+    print(f"Log-likelihood of our true model: "
+          f"{round(log_likelihood_FA_mmodel(m, F, 0.4 * np.eye(m.shape[0]), data), 3)}")
+

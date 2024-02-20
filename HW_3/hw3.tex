@@ -1,0 +1,226 @@
+\documentclass[10pt,notitlepage]{article}
+%Mise en page
+\usepackage[left=1.5cm, right=1.5cm, lines=45, top=0.8in, bottom=0.7in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{float}
+\pagestyle{fancy}
+\usepackage[most,breakable]{tcolorbox}
+\usepackage{pdfcol,xcolor}
+\usepackage{tikz}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{graphicx} %Loading the package
+\graphicspath{{./images/}}
+\usepackage{dsfont}
+\usepackage{amssymb,amsmath,mathtools}
+\usepackage{xspace}
+\usepackage[normalem]{ulem}
+\usepackage{bm}
+\usepackage[breaklinks=true,colorlinks,linkcolor=magenta,urlcolor=magenta,citecolor=black]{hyperref}
+\usepackage{cleveref}
+\usepackage{hyperref}
+\usepackage{xpatch}
+\usepackage[shortlabels]{enumitem}
+\usepackage{tikz}
+\xpretocmd{\algorithm}{\hsize=\linewidth}{}{}
+\definecolor{MBlue}{RGB}{0,39,76}
+\allowdisplaybreaks
+
+\newtcolorbox[auto counter]{exercise}[1][]{%
+	colback=yellow!10,
+	colframe=MBlue,
+	coltitle=white,
+	use color stack,
+	enforce breakable,
+	enhanced,
+	fonttitle=\bfseries,
+	before upper={\parindent15pt\noindent}, 
+	title={\color{white} #1}
+}
+
+\lhead{
+	\textbf{University of Michigan}
+}
+\rhead{
+	\textbf{Winter 24}
+}
+\chead{
+	\textbf{STATS 601}
+}\lfoot{}
+\cfoot{Paolo Borello, borello@umich.edu}
+
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\MBlue}[1]{{\color{MBlue}#1}}
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\magenta}[1]{{\color{magenta}#1}}
+\newcommand{\green}[1]{{\color{green}#1}}
+\newcommand{\ans}[1]{{\color{orange}\textsf{Ans}: #1}}
+
+
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\prob}[1]{\mathbb{P}\left(#1\right)}
+\newcommand{\mean}[2][]{\mathbb{E}_{#1}\left[#2\right]}
+\newcommand{\var}[2][]{\mathbb{V}_{#1}\text{ar}\left(#2\right)}
+\newcommand{\cov}[2][]{\mathbb{C}_{#1}\text{ov}\left(#2\right)}
+\newcommand{\sign}[1]{\text{sign}\left(#1\right)}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\corr}[1]{\text{corr}\left(#1\right)}
+\newcommand{\Xv}{\mathbf{X}}
+\newcommand{\Yv}{\mathbf{Y}}
+\newcommand{\Hj}{H_{-j}}
+\newcommand{\tr}[1]{\text{tr}\left[#1\right]}
+\newcommand{\Id}{\mathbf{I}}
+\newcommand{\ZeroM}{\mathbf{0}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+
+
+%===========================================================
+\begin{document}
+	\begin{center}
+		\huge{\MBlue{\textbf{Homework 2}}}		
+		\vskip20pt
+		\large{
+			\textbf{name:} Paolo Borello\\
+            \textbf{email:} borello@umich.edu}
+	\end{center}
+
+    \vskip20pt
+    \noindent
+    \textbf{\large \MBlue{Exercise 1}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+        Remember we have that 
+        \begin{align*}
+            \begin{pmatrix}
+                X \\ 
+                Y
+            \end{pmatrix} &\overset{\text{i.i.d.}}{\sim} \mathcal{N}\left(
+            \begin{pmatrix}
+                0 \\ 
+                \mu
+            \end{pmatrix},
+            \begin{bmatrix}
+                \Id & \Lambda^\top \\
+                \Lambda & \Lambda\Lambda^\top + \Psi
+            \end{bmatrix}
+            \right)\\
+            Y\mid X &\overset{\text{i.i.d.}}{\sim}\mathcal{N}\left(\mu+\Lambda X, \Psi\right)\\
+            X\mid Y &\overset{\text{i.i.d.}}{\sim}\mathcal{N}\left(\Lambda^\top\left(\Lambda\Lambda^\top+\Psi\right)^{-1}\left(Y-\mu\right), \Id-\Lambda^\top\left(\Lambda\Lambda^\top+\Psi\right)^{-1}\Lambda\right)\\
+            X&\overset{\text{i.i.d.}}{\sim}\mathcal{N}\left(0, \Id\right)
+        \end{align*}
+        where $X\in\mathbb{R}^p$ and $Y\in\mathbb{R}^q$, i.e. the latent and observed variables have dimensionality $p$ and  $q$ respectively.\\
+        Then we are interested in computing and maximizing with respect to $\mu,\Lambda,\Psi$ the following
+        \begin{align*}
+            \mean[X\sim p\left(X\mid Y\right)]{\ell\left(\mu,\Lambda,\Psi;Y,X\right)} &= \mean[X\sim p\left(X\mid Y\right)]{\log p\left(X,Y\mid \mu, \Lambda,\Psi\right)} = \\
+            &= \mean[X\sim p\left(X\mid Y\right)]{\log p\left(Y\mid X,\mu, \Lambda,\Psi\right)} + \mean[X\sim p\left(X\mid Y\right)]{\log p\left(X\mid\mu, \Lambda,\Psi\right)}
+        \end{align*}
+        Now since the marginal of $X$ does not involve $\mu,\Lambda,\Psi$, we can consider the second expectation as a constant $c$, therefore
+        \begin{align*}
+            \mean[X\sim p\left(X\mid Y\right)]{\ell\left(\mu,\Lambda,\Psi;Y,X\right)} &= c + \mean[X\sim p\left(X\mid Y\right)]{\log p\left(Y\mid X,\mu, \Lambda,\Psi\right)}
+        \end{align*}
+        Then using the fact that our data is i.i.d. and the standard notation of EM algorithms (denoting our parameters as $\theta = \left(\mu,\Lambda,\Psi\right)$), our expected log-likelihood is given by
+        \begin{align*}
+            Q\left(\theta, \theta^\star_{\text{old}}\right) &= \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\ell\left(\theta;Y_i,X_i\right)} = \\
+            &= k + \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\log p\left(Y_i,\mid X_i,\theta\right)} 
+        \end{align*}
+        Now using the fact that $Y\mid X$ is Gaussian distributed with mean and variance given above
+        \begin{align*}
+            Q\left(\theta, \theta^\star_{\text{old}}\right) &= k + \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{ -\frac{q}{2}\log\left(2\pi\right) -\frac{1}{2}\log\abs{\Psi} -\frac{1}{2}\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)} = \\
+            &= k^\prime - \frac{n}{2}\log\abs{\Psi} - \frac{1}{2}\sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)}
+        \end{align*}
+        Now let us focus on the term inside the last expectation
+        \begin{gather*}
+            \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)} = \\
+            = \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{Y_i^\top \Psi^{-1} Y_i + \mu^\top \Psi^{-1} \mu + X_i^\top\Lambda^\top\Psi^{-1}\Lambda X_i - 2\mu^\top \Psi^{-1}Y_i - 2Y_i^\top \Psi^{-1}\Lambda X_i + 2 \mu^\top \Psi^{-1}\Lambda X_i} = \\
+            = \sum_{i=1}^{n}Y_i^\top \Psi^{-1} Y_i + \mu^\top \Psi^{-1} \mu - 2\mu^\top \Psi^{-1}Y_i + \mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{X_i^\top\Lambda^\top\Psi^{-1}\Lambda X_i - 2Y_i^\top \Psi^{-1}\Lambda X_i + 2 \mu^\top \Psi^{-1}\Lambda X_i} = \\
+            = \sum_{i=1}^{n}\left(Y_i-\mu\right)^\top \Psi^{-1} \left(Y_i-\mu\right) + \mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{X_i^\top\Lambda^\top\Psi^{-1}\Lambda X_i - 2Y_i^\top \Psi^{-1}\Lambda X_i + 2 \mu^\top \Psi^{-1}\Lambda X_i} = \\
+            = \sum_{i=1}^{n}\left(Y_i-\mu\right)^\top \Psi^{-1} \left(Y_i-\mu\right) + \tr{\Lambda^\top\Psi^{-1}\Lambda\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{ X_i X_i^\top}} - 2\left(Y_i-\mu\right)^\top \Psi^{-1}\Lambda \mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{X_i} = \\
+            = \sum_{i=1}^{n}\left(Y_i-\mu\right)^\top \Psi^{-1} \left(Y_i-\mu\right) + \tr{\Lambda^\top\Psi^{-1}\Lambda\mean{ X_i X_i^\top \mid Y_i, \theta^\star_{\text{old}}}} - 2\left(Y_i-\mu\right)^\top \Psi^{-1}\Lambda \mean{X_i\mid Y_i, \theta^\star_{\text{old}}}
+        \end{gather*}
+        then 
+        \begin{align*}
+            Q\left(\theta, \theta^\star_{\text{old}}\right) &= k^\prime - \frac{n}{2}\log\abs{\Psi} +\\
+            &- \frac{1}{2}\sum_{i=1}^{n}\left(Y_i-\mu\right)^\top \Psi^{-1} \left(Y_i-\mu\right) + \tr{\Lambda^\top\Psi^{-1}\Lambda\mean{ X_i X_i^\top \mid Y_i, \theta^\star_{\text{old}}}} - 2\left(Y_i-\mu\right)^\top \Psi^{-1}\Lambda \mean{X_i\mid Y_i, \theta^\star_{\text{old}}}
+        \end{align*}
+        and note that
+        \begin{align*}
+            \mean{X_i\mid Y_i, \theta^\star_{\text{old}}} &= \Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right)\\
+            \mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}} &= \var{X_i \mid Y_i, \theta^\star_{\text{old}}} + \mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top = \\
+            &= \Id-\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^\star_{\text{old}} + \\
+            &+\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right) \left(Y_i-\mu^\star_{\text{old}}\right)^\top \left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^{\star}_{\text{old}}
+        \end{align*}
+        This is the end of our Expectation step. \\
+        Now we want to maximize this function with respect to $\theta = \left(\mu,\Lambda,\Psi\right)$. To do this we differentiate and obtain
+        \begin{align*}
+            \frac{\partial}{\partial\mu}Q\left(\theta, \theta^\star_{\text{old}}\right) &= -\frac{1}{2}\sum_{i=1}^{n} -2\Psi^{-1}\left(Y_i-\mu\right) + 2\Psi^{-1}\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}} = \\
+            &=\Psi^{-1}\sum_{i=1}^{n}Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}} =0\implies \\
+            \implies\hat{\mu} &= \frac{1}{n}\sum_{i=1}^{n} Y_i-\hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\\
+            \frac{\partial}{\partial\Lambda}Q\left(\theta, \theta^\star_{\text{old}}\right) &= -\frac{1}{2}\sum_{i=1}^{n}2\Psi^{-1}\Lambda\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}-2\Psi^{-1}\left(Y_i-\mu\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top = \\
+            &= \Psi^{-1}\sum_{i=1}^{n}-\Lambda\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}+\left(Y_i-\mu\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top = 0\implies\\
+            \implies\hat{\Lambda}&=\left(\sum_{i=1}^{n}\left(Y_i-\hat{\mu}\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)^{-1}\\
+            \frac{\partial}{\partial\Psi^{-1}}Q\left(\theta, \theta^\star_{\text{old}}\right) &= \frac{n}{2}\Psi-\frac{1}{2}\sum_{i=1}^{n}\left(Y_i-\mu\right)\left(Y_i-\mu\right)^\top + \Lambda\mean{ X_i X_i^\top \mid Y_i, \theta^\star_{\text{old}}}\Lambda^\top +\\
+            &- 2 \Lambda \mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\mu\right)^\top = 0 \implies\\
+            \implies \hat{\Psi} &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\hat{\mu}\right)\left(Y_i-\hat{\mu}\right)^\top\right) + \frac{1}{n}\hat{\Lambda}\left(\sum_{i=1}^{n}\mean{ X_i X_i^\top \mid Y_i, \theta^\star_{\text{old}}}\right)\hat{\Lambda}^\top +\\
+            &- \frac{1}{n} 2 \hat{\Lambda} \left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\hat{\mu}\right)^\top\right)
+        \end{align*}
+        Now we need to solve a complicated linear system to retrieve $\hat{\mu},\hat{\Lambda},\hat{\Psi}$ explicitly. \\
+        However note that we can estimate $\mu$ trough the usual MLE $\bar{Y}$. Moreover substituting $\hat{\Lambda}$ in our last equation, yields
+        \begin{align*}
+            \hat{\mu} &= \bar{Y}\\
+            \hat{\Lambda}&=\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)^{-1}\\
+            \hat{\Psi} &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top\right) + \frac{1}{n}\hat{\Lambda}\left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) +\\
+            &- \frac{1}{n} 2 \hat{\Lambda} \left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) = \\
+            &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)
+        \end{align*}
+        which is the end of our M-step.
+        Therefore our EM-alogirthm consists of the following
+        \begin{itemize}
+            \item \textbf{E-step}:
+                    \begin{align*}
+                        \mean{X_i\mid Y_i, \theta^\star_{\text{old}}} &= \Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right)\\
+                        \mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}} &= \Id-\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^\star_{\text{old}} + \\
+                        &+\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right) \left(Y_i-\mu^\star_{\text{old}}\right)^\top \left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^{\star}_{\text{old}}
+                    \end{align*}
+            \item \textbf{M-step}:
+                    \begin{align*}
+                        \hat{\mu} &= \bar{Y}\\
+                        \hat{\Lambda}&=\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)^{-1}\\
+                        \hat{\Psi} &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)
+                    \end{align*}
+        \end{itemize}
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 2}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 3}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 4}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+    \newpage
+    \textbf{\large \MBlue{Exercise 5}}
+    \vskip10pt
+    \noindent
+	\begin{exercise}[Solution]
+    \end{exercise}
+
+\end{document}

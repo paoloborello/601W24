@@ -1,4 +1,13 @@
 import numpy as np
+import pyreadr
+import matplotlib.pyplot as plt
+
+
+def linear_kernel(Y):
+    # compute the linear kernel matrix
+    # inputs: Y: n x p data matrix
+    # returns: K: n x n kernel matrix
+    return Y @ Y.T
 
 
 def rbf_kernel(Y, gamma=None):
@@ -41,10 +50,24 @@ def kernel_PCA_proj(K, pcs=1):
 
 
 if __name__ == '__main__':
-    data = np.array([[1, 1, 1, 1, 0, 0, 0],
-                     [0, 0, 0, 1, 1, 1, 1],
-                     [1, 1, 1, 1, 0, 0, 0],
-                     [1, 1, 1, 1, 0, 0, 0]],
-                    dtype=float).T
-    kernel = rbf_kernel(data)
-    print(kernel_PCA_proj(kernel, 1))
+    nyt_frame = pyreadr.read_r('./data/nytimes.RData')["nyt.frame"]
+    labels = nyt_frame["class.labels"]
+    labels = (labels == "art").values.astype(int)
+    colors = np.array(["yellow", "blue"])[labels]
+    data = nyt_frame.drop("class.labels", axis=1).to_numpy()
+
+    kernels = [linear_kernel(data), rbf_kernel(data, gamma=10), poly_kernel(data)]
+    kernel_names = ["Linear", "RBF", "Polynomial"]
+    for i, kernel in enumerate(kernels):
+        proj_1d = kernel_PCA_proj(kernel, 1)
+        plt.scatter(proj_1d, np.zeros_like(proj_1d), c=colors, alpha=0.1)
+        plt.title(f"1D {kernel_names[i]} PCA")
+        plt.show()
+        proj_2d = kernel_PCA_proj(kernel, 2)
+        plt.scatter(proj_2d[:, 0], proj_2d[:, 1], c=colors)
+        plt.show()
+        proj_3d = kernel_PCA_proj(kernel, 3)
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(proj_3d[:, 0], proj_3d[:, 1], proj_3d[:, 2], c=colors)
+        plt.show()

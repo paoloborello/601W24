@@ -1,17 +1,18 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 
-def MDS(D, p=2):
+def MDS(Dis, p=2):
     # compute the MDS projection
-    # inputs: D: n x n distance matrix
+    # inputs: Dis: n x n distance matrix
     #         p: number of dimensions
     # returns: X: n x p data matrix
     # number of samples
-    n = D.shape[0]
+    n = Dis.shape[0]
     # centering matrix
     H = np.eye(n) - np.ones((n, n)) / n
     # compute the kernel matrix
-    K = - 0.5 * H @ D @ H
+    K = - 0.5 * H @ np.square(Dis) @ H
     # compute the eigenvalues and eigenvectors
     D, U = np.linalg.eig(K)
     # sort the eigenvalues and eigenvectors
@@ -40,4 +41,29 @@ if __name__ == '__main__':
                          [2182, 1737, 1021, 1891, 959, 2734, 2408, 678, 0, 2329],
                          [543, 597, 1494, 1220, 2300, 923, 205, 2442, 2329, 0]],
                         dtype=float)
-    print(MDS(D_matrix, 2))
+    coords = MDS(D_matrix, 2)
+    cities = ['Atlanta', 'Chicago', 'Denver', 'Houston', 'LA', 'Miami', 'NY', 'San Fran', 'Seattle', 'Wash.']
+    plt.scatter([coords[:, 0]], [coords[:, 1]])
+    for i, txt in enumerate(cities):
+        plt.annotate(txt, (coords[i, 0], coords[i, 1]))
+    plt.savefig('./figures/mds_map.png')
+    plt.show()
+
+    pix_Seattle = [126, 186]
+    pix_Miami = [1600, 1152]
+    coords[:, 1] = -coords[:, 1]
+    s_x = (coords[8, 0] - coords[5, 0]) / (pix_Seattle[0] - pix_Miami[0])
+    s_y = (coords[8, 1] - coords[5, 1]) / (pix_Seattle[1] - pix_Miami[1])
+    shift_x = s_x * pix_Miami[0] - coords[5, 0]
+    shift_y = s_y * pix_Miami[1] - coords[5, 1]
+    shift = np.array([shift_x, shift_y])
+    scale = np.array([s_x, s_y])
+    coords = np.divide(coords + np.tile(shift, (10, 1)), np.tile(scale, (10, 1)))
+    im = plt.imread("./figures/map.png")
+    im_plot = plt.imshow(im)
+    plt.scatter([coords[:, 0]], [coords[:, 1]])
+    for i, txt in enumerate(cities):
+        plt.annotate(txt, (coords[i, 0], coords[i, 1]))
+    plt.savefig('./figures/map_overlay.png')
+    plt.show()
+
