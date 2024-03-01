@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import multivariate_normal
 import pandas as pd
+np.random.seed(65987833)
 
 
 def gen_data(mu, Lambda, n=100, scale_1=1, scale_2=np.sqrt(0.4)):
@@ -121,28 +122,40 @@ if __name__ == '__main__':
     print(f"""\n {pd.DataFrame({"sigma": sigmas, "log_l": log_ls.max(axis=1).round(3)})}""")
 
     # part b
-    nsim = 1000
-    norms = np.zeros(nsim)
+    nsim = 100
+    norms = np.zeros((len(sigmas), nsim))
     Lambda_estimates = []
-    for sim in tqdm(range(nsim)):
-        Lambda_hat = np.random.normal(scale=1, size=F.shape)
-        Psi_hat = np.eye(F.shape[0])
-        mu_hat = np.zeros(F.shape[0])
-        for _ in range(max_iter):
-            cond_E_X, cond_V_X = E_step_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
-            old_mu, old_Lambda, old_Psi = mu_hat, Lambda_hat, Psi_hat
-            mu_hat, Lambda_hat, Psi_hat = M_step_FA_mmodel(data, cond_E_X, cond_V_X)
-            if np.allclose(old_mu, mu_hat) and np.allclose(old_Lambda, Lambda_hat) and np.allclose(old_Psi, Psi_hat):
-                norms[sim] = projection_norm(F, Lambda_hat)
-                Lambda_estimates.append(Lambda_hat)
-                break
+    for i, sigma in enumerate(tqdm(sigmas)):
+        lambdas_sigma_runs = []
+        for sim in range(nsim):
+            Lambda_hat = np.random.normal(scale=sigma, size=F.shape)
+            Psi_hat = np.eye(F.shape[0])
+            mu_hat = np.zeros(F.shape[0])
+            for _ in range(max_iter):
+                cond_E_X, cond_V_X = E_step_FA_mmodel(mu_hat, Lambda_hat, Psi_hat, data)
+                old_mu, old_Lambda, old_Psi = mu_hat, Lambda_hat, Psi_hat
+                mu_hat, Lambda_hat, Psi_hat = M_step_FA_mmodel(data, cond_E_X, cond_V_X)
+                if np.allclose(old_mu, mu_hat) and np.allclose(old_Lambda, Lambda_hat) and np.allclose(old_Psi, Psi_hat):
+                    norms[i, sim] = projection_norm(F, Lambda_hat)
+                    lambdas_sigma_runs.append(Lambda_hat)
+                    break
+        Lambda_estimates.append(lambdas_sigma_runs[np.argmin(norms[i, :])])
 
-    best_Lambda = Lambda_estimates[np.argmin(norms)]
-    print(f"Estimate achieving minimal distance in column space:\n "
-          f"{best_Lambda}")
+    # best_Lambda = Lambda_estimates[np.argmin(norms)]
+    np.set_printoptions(formatter={'float_kind': '{:f}'.format})
+    for i in range(len(sigmas)):
+        print(f""""{"-" * 70}""")
+        print(f"Minimal distance in column space for sigma = {sigmas[i]}: {round(norms[i].min(), 3)}")
+        print(f"Estimate achieving minimal distance in column space for sigma = {sigmas[i]}:\n "
+              f"{np.round(Lambda_estimates[i], 3)}")
+        print(f"Log-likelihood of our estimate: "
+              f"{round(log_likelihood_FA_mmodel(mu_hat, Lambda_estimates[i], Psi_hat, data), 3)}")
+        print(f"Log-likelihood of our true model: "
+              f"{round(log_likelihood_FA_mmodel(m, F, 0.4 * np.eye(m.shape[0]), data), 3)}")
+    # print(Lambda_estimates)
+    # print(f"Minimal distance in column space: {round(norms.min(), 3)}")
+    # print(f"Estimate achieving minimal distance in column space:\n "
+    #       f"{best_Lambda}")
     print(f"True factor matrix: \n {F}")
-    print(f"Log-likelihood of our estimate: "
-          f"{round(log_likelihood_FA_mmodel(mu_hat, best_Lambda, Psi_hat, data), 3)}")
-    print(f"Log-likelihood of our true model: "
-          f"{round(log_likelihood_FA_mmodel(m, F, 0.4 * np.eye(m.shape[0]), data), 3)}")
+
 

@@ -169,13 +169,13 @@
             &- \frac{1}{n} 2 \hat{\Lambda} \left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\hat{\mu}\right)^\top\right)
         \end{align*}
         Now we need to solve a complicated linear system to retrieve $\hat{\mu},\hat{\Lambda},\hat{\Psi}$ explicitly. \\
-        However note that we can estimate $\mu$ trough the usual MLE $\bar{Y}$. Moreover substituting $\hat{\Lambda}$ in our last equation, yields
+        However note that we can estimate $\mu$ trough the usual MLE $\bar{Y}$. Moreover substituting $\hat{\Lambda}$ in our last equation, and setting $\Psi$ to be diagonal yields
         \begin{align*}
             \hat{\mu} &= \bar{Y}\\
             \hat{\Lambda}&=\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)^{-1}\\
-            \hat{\Psi} &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top\right) + \frac{1}{n}\hat{\Lambda}\left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) +\\
-            &- \frac{1}{n} 2 \hat{\Lambda} \left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) = \\
-            &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)
+            \hat{\Psi} &= \text{diag}\left\{\frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top\right) + \frac{1}{n}\hat{\Lambda}\left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) +\right.\\
+            &\left.-\frac{1}{n} 2 \hat{\Lambda} \left(\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right) \right\}= \\
+            &= \text{diag}\left\{\frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)\right\}
         \end{align*}
         which is the end of our M-step.
         Therefore our EM-alogirthm consists of the following
@@ -190,7 +190,7 @@
                     \begin{align*}
                         \hat{\mu} &= \bar{Y}\\
                         \hat{\Lambda}&=\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)^{-1}\\
-                        \hat{\Psi} &= \frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)
+                        \hat{\Psi} &= \text{diag}\left\{\frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \hat{\Lambda}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)\right\}
                     \end{align*}
         \end{itemize}
     \end{exercise}
@@ -200,6 +200,7 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        Implementation and comments present in the Jupyter Notebook.
     \end{exercise}
 
     \newpage
@@ -207,6 +208,99 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        Now we want to penalize our log-likelihood by adding a LASSO penalty on the entries of $\Lambda$, note now that this just translates to adding the penalty to the $Q$ function from exercise 1.\\
+        Therefore we have that 
+        \begin{align*}
+            Q\left(\theta, \theta^\star_{\text{old}}\right) &= - \frac{n}{2}\log\abs{\Psi} - \frac{1}{2}\sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)} - \lambda\sum_{j=1}^{q}\sum_{i=1}^{p}\abs{\Lambda_{ji}}
+        \end{align*}
+        Now note that the maximizers of this function with respect to $\Psi$ is going to be the same as in exercise 1, since the penalty term only involves $\Lambda$. However from exercise 2, we also see that to compute the update for $\Psi$ we need $\Lambda$, but this can be easily worked around by using the previous iteration $\Lambda$ and still mantaining the likelihood ascent property of EM.\\
+        Now let us focus on the expectation term. Using the trace trick we have
+        \begin{gather*}
+            \sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)} =\\
+            = \tr{\Psi^{-1}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\sum_{i=1}^{n}\left(Y_i - \mu - \Lambda X_i\right)\left(Y_i - \mu - \Lambda X_i\right)^\top}}
+        \end{gather*}
+        Now
+        \begin{align*}
+            S&\coloneq\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\sum_{i=1}^{n}\left(Y_i - \mu - \Lambda X_i\right)\left(Y_i - \mu - \Lambda X_i\right)^\top} = \\
+            &= \sum_{i=1}^{n}\left(Y_i-\mu\right) \left(Y_i-\mu\right)^\top - 2\Lambda\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\mu\right)^\top + \Lambda\left(\sum_{i=1}^{n}\mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}}\right)\Lambda^\top = \\
+            &= \sum_{i=1}^{n}\left(Y_i-\mu\right) \left(Y_i-\mu\right)^\top - 2\Lambda\sum_{i=1}^{n}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\mu\right)^\top + \\
+            &+ \Lambda\left(\sum_{i=1}^{n}\var{X_i\mid Y_i, \theta^\star_{\text{old}}}+\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}^\top\right)\Lambda^\top = \\
+            &= \sum_{i=1}^{n}\left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right) \left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right)^\top + \Lambda\var{X_i\mid Y_i, \theta^\star_{\text{old}}}\Lambda^\top
+        \end{align*}
+        Now note that the variance does not depend on the observation $i$ and performing a Cholesky decomposition we have
+        \begin{align*}
+            \var{X_i\mid Y_i, \theta^\star_{\text{old}}} = \Id-\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^\star_{\text{old}} \overset{\text{Chol.}}{\eqcolon} MM^\top
+        \end{align*}
+        then
+        \begin{align*}
+            S &= \sum_{i=1}^{n}\left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right) \left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right)^\top + \Lambda MM^\top\Lambda^\top
+        \end{align*}
+        and using the fact that $\Psi$ is diagonal we have
+        \begin{align*}
+            \tr{\Psi^{-1}S} &= \tr{\Psi^{-1}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\sum_{i=1}^{n}\left(Y_i - \mu - \Lambda X_i\right)\left(Y_i - \mu - \Lambda X_i\right)^\top}} =\\
+            &= \tr{\Psi^{-1}\sum_{i=1}^{n}\left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right) \left(Y_i-\mu-\Lambda\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right)^\top + \Lambda MM^\top\Lambda^\top} = \\
+            &= \sum_{i=1}^{n}\sum_{j=1}^{q}\frac{1}{\Psi_{jj}}\left[\left(Y_{ij}-\mu_j-\Lambda_{j,\cdot}\,\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right)^2 + \Lambda_{j,\cdot}\, MM^\top\Lambda_{j,\cdot}^\top\right] = \\
+            &= \sum_{j=1}^{q}\frac{1}{\Psi_{jj}}\sum_{i=1}^{n}\left[\left(Y_{ij}-\mu_j-\Lambda_{j,\cdot}\,\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\right)^2 + \Lambda_{j,\cdot}\, MM^\top\Lambda_{j,\cdot}^\top\right] = \\
+            &= \sum_{j=1}^{q}\frac{1}{\Psi_{jj}}\left[\norm{Y_j-\mu_j 1_n - \mean{X\mid Y, \theta^\star_{\text{old}}}\Lambda_{j,\cdot}^\top}_2^2 + n\norm{M \Lambda_{j,\cdot}}_2^2\right]
+        \end{align*} 
+        where $\Lambda_{j,\cdot}$ denotes the $j$-th row of $\Lambda$, $Y_j$ is the $n\times 1$ vector representing the $j$-th covariate of the data matrix $Y$ and $\mean{X\mid Y, \theta^\star_{\text{old}}}$ is an $n\times p$ matrix where the $i$-th row is given by $\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}$.\\
+        Now note that if we augment our response appropriately we can rewrite this Ridge objective in terms of one single norm, indeed
+        \begin{align*}
+            \tilde{Y}_{(j)} &= \sqrt{\frac{1}{\Psi_{jj}}}
+            \begin{bmatrix}
+                Y_j-\mu_j 1_n\\
+                \ZeroM_p
+            \end{bmatrix}\in\mathbb{R}^{(n+p)\times 1}\\
+            \tilde{X}_{(j)} &= \sqrt{\frac{1}{\Psi_{jj}}}
+            \begin{bmatrix}
+                \mean{X\mid Y, \theta^\star_{\text{old}}}\\
+                \sqrt{n} M
+            \end{bmatrix}\in\mathbb{R}^{(n+p)\times p}
+        \end{align*}
+        then
+        \begin{align*}
+            \tr{\Psi^{-1}S} = \sum_{j=1}^{q}\norm{\tilde{Y}_{(j)} - \tilde{X}_{(j)}\Lambda_{j,\cdot}^\top}_2^2
+        \end{align*}
+        therefore
+        \begin{align*}
+            Q\left(\theta, \theta^\star_{\text{old}}\right) &= - \frac{n}{2}\log\abs{\Psi} - \frac{1}{2}\sum_{i=1}^{n}\mean[X_i\sim p\left(X_i\mid Y_i, \theta^\star_{\text{old}}\right)]{\left(Y_i - \mu - \Lambda X_i\right)^\top \Psi^{-1}\left(Y_i - \mu - \Lambda X_i\right)} - \lambda\sum_{j=1}^{q}\sum_{i=1}^{p}\abs{\Lambda_{ji}} = \\
+            &= - \frac{n}{2}\log\abs{\Psi} - \frac{1}{2}\sum_{j=1}^{q}\norm{\tilde{Y}_{(j)} - \tilde{X}_{(j)}\Lambda_{j,\cdot}^\top}_xx2^2 - \lambda\sum_{j=1}^{q}\sum_{i=1}^{p}\abs{\Lambda_{ji}} = \\
+            &= - \frac{n}{2}\log\abs{\Psi} - \sum_{j=1}^{q}\left[\frac{1}{2}\norm{\tilde{Y}_{(j)} - \tilde{X}_{(j)}\Lambda_{j,\cdot}^\top}_2^2 + \lambda\sum_{i=1}^{p}\abs{\Lambda_{ji}}\right] = \\
+            &= - \frac{n}{2}\log\abs{\Psi} - \sum_{j=1}^{q}\left[\frac{1}{2}\norm{\tilde{Y}_{(j)} - \tilde{X}_{(j)}\Lambda_{j,\cdot}^\top}_2^2 + \lambda \norm{\Lambda_{j,\cdot}}_1\right]
+        \end{align*}
+        therefore we can maximize $Q$ with respect to $\Lambda$ by running $q$ LASSO regressions on these surrogate responses and covariates matrices. Note that for each $j$ we have to keep our penalizing factor $\lambda$ constant.\\
+        Therefore our EM-alogirthm consists of the following
+        \begin{itemize}
+            \item \textbf{E-step}:
+                    \begin{align*}
+                        \mean{X_i\mid Y_i, \theta^\star_{\text{old}}} &= \Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right)\\
+                        \mean{X_i X_i^\top\mid Y_i, \theta^\star_{\text{old}}} &= \Id-\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^\star_{\text{old}} + \\
+                        &+\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\left(Y_i-\mu^\star_{\text{old}}\right) \left(Y_i-\mu^\star_{\text{old}}\right)^\top \left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^{\star}_{\text{old}}\\
+                        \var{X_i\mid Y_i, \theta^\star_{\text{old}}} &= \Id-\Lambda^{\star^\top}_{\text{old}}\left(\Lambda^\star_{\text{old}}\Lambda^{\star^\top}_{\text{old}}+\Psi^\star_{\text{old}}\right)^{-1}\Lambda^\star_{\text{old}}\\
+                        M &\mid M M^\top = \var{X_i\mid Y_i, \theta^\star_{\text{old}}}
+                    \end{align*}
+            \item \textbf{M-step}:
+                    \begin{align*}
+                        \hat{\mu} &= \bar{Y}\\
+                        \hat{\Psi} &= \text{diag}\left\{\frac{1}{n}\left(\sum_{i=1}^{n}\left(Y_i-\bar{Y}\right)\left(Y_i-\bar{Y}\right)^\top - \Lambda^\star_{\text{old}}\mean{X_i\mid Y_i, \theta^\star_{\text{old}}}\left(Y_i-\bar{Y}\right)^\top\right)\right\}
+                    \end{align*}
+                    then for each $j\in[q]$
+                    \begin{align*}
+                        \tilde{Y}_{(j)} &= \sqrt{\frac{1}{\hat{\Psi}_{jj}}}
+                        \begin{bmatrix}
+                            Y_j-\hat{\mu}_j 1_n\\
+                            \ZeroM_p
+                        \end{bmatrix}\\
+                        \tilde{X}_{(j)} &= \sqrt{\frac{1}{\hat{\Psi}_{jj}}}
+                        \begin{bmatrix}
+                            \mean{X\mid Y, \theta^\star_{\text{old}}}\\
+                            \sqrt{n} M
+                        \end{bmatrix}\\
+                        \hat{\Lambda}_{j,\cdot} &= \argmin_{\Lambda_{j,\cdot}} \frac{1}{2}\norm{\tilde{Y}_{(j)} - \tilde{X}_{(j)}\Lambda_{j,\cdot}^\top}_2^2 + \lambda \norm{\Lambda_{j,\cdot}}_1
+                    \end{align*}
+        \end{itemize}
+        While the code seems easy in practice to implement, it is very unstable due to the impossibility of using standard (due to the constant $\lambda$ across $j$) CV routines. The algorithm usually either shrinks every entry of $\Lambda$ to 0 or the LASSO regressions do not converge.\\
+        I was able to make it work only with very small values of initialization noise. Indeed I generate the entries of my starting $\Lambda_0$ as $\mathcal{N}(0,\sigma^2)$ with $\sigma^2 = 0.01, 0.1$. The results are in the Jupyter notebook.
     \end{exercise}
 
     \newpage
@@ -214,6 +308,7 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        Implementation and comments present in the Jupyter Notebook.
     \end{exercise}
 
     \newpage
@@ -221,6 +316,7 @@
     \vskip10pt
     \noindent
 	\begin{exercise}[Solution]
+        Implementation and comments present in the Jupyter Notebook.
     \end{exercise}
 
 \end{document}
