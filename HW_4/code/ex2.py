@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 import torch
-from HW_3.code.ex5 import linear_kernel, rbf_kernel, poly_kernel
 from typing import TypeVar
 
 Tensor = TypeVar('torch.tensor')
 Array = TypeVar('numpy.ndarray')
+
 
 def center_columns(X: Array) -> Array:
     # X: feature matrix
@@ -384,16 +384,16 @@ if __name__ == '__main__':
 
     # part a
     # train penalized logistic regression
-    # print(f"""{"="*70}\n"""
-    #       f"""Penalized Logistic Regression\n"""
-    #       f"""{"-"*70}""")
-    # plr = PenalizedLogisticReg()
-    # plr.cv_train(X_train, y_train, [0.0000001, 0.000001, 0.00001], 10)
-    # print(f"Train accuracy on data: {round(plr.accuracy(X_train, y_train) * 100, 3)}%\n"
-    #       f"Test accuracy on data: {round(plr.accuracy(X_test, y_test) * 100, 3)}%")
-    # plr.cv_train(log_X_train, y_train, [0.1, 1, 10], 10)
-    # print(f"Train accuracy on log transformed data: {round(plr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
-    #       f"Test accuracy on log transformed data: {round(plr.accuracy(log_X_test, y_test) * 100, 3)}%")
+    print(f"""{"="*70}\n"""
+          f"""Penalized Logistic Regression\n"""
+          f"""{"-"*70}""")
+    plr = PenalizedLogisticReg()
+    plr.cv_train(X_train, y_train, [0.0000001, 0.000001, 0.00001], 10)
+    print(f"Train accuracy on data: {round(plr.accuracy(X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on data: {round(plr.accuracy(X_test, y_test) * 100, 3)}%")
+    plr.cv_train(log_X_train, y_train, [0.1, 1, 10], 10)
+    print(f"Train accuracy on log transformed data: {round(plr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on log transformed data: {round(plr.accuracy(log_X_test, y_test) * 100, 3)}%")
 
     # part b
     # train LDA classifier
