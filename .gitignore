@@ -362,3 +362,4 @@ rsconnect/
 *.png
 *.html
 HW_3/code/__pycache__/ex2.cpython-311.pyc
+/HW_3/code/__pycache__

@@ -40,13 +40,12 @@ class PenalizedLogisticReg:
         # return: log likelihood
         return torch.sum(y * (X @ theta) - torch.log(1 + torch.exp(X @ theta)))
 
-    @staticmethod
-    def loss(X: Tensor, y: Tensor, theta: Tensor, lamb: float) -> Tensor:
+    def loss(self, X: Tensor, y: Tensor, theta: Tensor, lamb: float) -> Tensor:
         # X: feature matrix
         # y: labels
         # theta: parameters
         # return: loss = - log_likelihood + L_2_penalty
-        return - PenalizedLogisticReg.log_likelihood(X, y, theta) + lamb * torch.sum(theta ** 2)
+        return - self.log_likelihood(X, y, theta) + lamb * torch.sum(theta ** 2)
 
     def train(self, X: Array, y: Array, lamb: float) -> None:
         # X: feature matrix
@@ -62,7 +61,7 @@ class PenalizedLogisticReg:
         optimizer = torch.optim.Adam([theta], lr=0.001)
         for _ in range(1000):
             optimizer.zero_grad()
-            loss = PenalizedLogisticReg.loss(X, y, theta, lamb)
+            loss = self.loss(X, y, theta, lamb)
             loss.backward()
             optimizer.step()
         # save parameters
@@ -217,9 +216,67 @@ class NaiveBayesClassifier:
 class KernelLogisticRegression:
     def __init__(self) -> None:
         self.alpha = None
-        self.kernel = None
+        self.X_repr = None
+        self.lamb = None
+        self.kernel_type = None
 
-    def train(self, X: Array, y: Array, kernel: str, lamb: float) -> None:
+    @staticmethod
+    def linear_kernel(X, Y):
+        # compute the linear kernel matrix
+        # inputs: X: n x p data matrix
+        #         Y: m x p data matrix
+        # returns: K: n x n kernel matrix
+        return X @ Y.T
+
+    @staticmethod
+    def rbf_kernel(X, Y, gamma=None):
+        # compute the RBF kernel matrix
+        # inputs: X: n x p data matrix
+        #         Y: m x p data matrix
+        #         gamma: kernel width
+        # returns: K: n x m kernel matrix
+        if gamma is None:
+            gamma = 1 / X.shape[1]
+        n = X.shape[0]
+        m = Y.shape[0]
+        X_sq = np.sum(X ** 2, axis=1)
+        Y_sq = np.sum(Y ** 2, axis=1)
+        X_sq = np.tile(X_sq, (m, 1)).T
+        Y_sq = np.tile(Y_sq, (n, 1))
+        K = X_sq + Y_sq - 2 * X @ Y.T
+        return np.exp(- gamma * K)
+
+    @staticmethod
+    def poly_kernel(X, Y, degree=2, gamma=None, c=1):
+        # compute the polynomial kernel matrix
+        # inputs: X: n x p data matrix
+        #         Y: m x p data matrix
+        #         degree: degree of the polynomial
+        #         gamma: scaling factor
+        #         c: constant term
+        # returns: K: n x m kernel matrix
+        if gamma is None:
+            gamma = 1 / X.shape[1]
+        K = (gamma * (X @ Y.T) + c) ** degree
+        return K
+
+    @staticmethod
+    def log_likelihood(K: Tensor, y: Tensor, alpha: Tensor) -> Tensor:
+        # K: kernel matrix
+        # y: labels
+        # alpha: parameters
+        # return: log likelihood
+        return torch.sum(y * (K @ alpha) - torch.log(1 + torch.exp(K @ alpha)))
+
+    def loss(self, K: Tensor, y: Tensor, alpha: Tensor, lamb: float) -> Tensor:
+        # X: feature matrix
+        # y: labels
+        # alpha: parameters
+        # lamb: penalty parameter
+        # return: loss
+        return - self.log_likelihood(K, y, alpha) + lamb * torch.sum(alpha ** 2)
+
+    def train(self, X: Array, y: Array, kernel: str = 'linear', lamb: float = 0.01) -> None:
         # X: feature matrix
         # y: labels
         # kernel: kernel function
@@ -227,14 +284,86 @@ class KernelLogisticRegression:
         # fit KLR model
         # calculate kernel matrix
         if kernel == 'linear':
-            K = linear_kernel(X)
+            K = self.linear_kernel(X, X)
+            self.kernel_type = 'linear'
         elif kernel == 'rbf':
-            K = rbf_kernel(X)
+            K = self.rbf_kernel(X, X)
+            self.kernel_type = 'rbf'
         elif kernel == 'poly':
-            K = poly_kernel(X)
+            K = self.poly_kernel(X, X)
+            self.kernel_type = 'poly'
         else:
             raise ValueError('Invalid kernel function')
-        pass
+        # save X for prediction
+        self.X_repr = X
+        # convert data to tensors
+        K = torch.tensor(K).float()
+        y = torch.tensor(y).float()
+        # initialize parameters
+        alpha = torch.zeros(K.shape[0], requires_grad=True)
+        # train model
+        optimizer = torch.optim.Adam([alpha], lr=0.005)
+        for _ in range(1000):
+            optimizer.zero_grad()
+            loss = self.loss(K, y, alpha, lamb)
+            loss.backward()
+            optimizer.step()
+        # save parameters
+        self.alpha = alpha.detach().numpy()
+        self.lamb = lamb
+
+    def predict(self, X: Array) -> Array:
+        # X: feature matrix
+        # return: predicted labels
+        if self.kernel_type == 'linear':
+            K = self.linear_kernel(X, self.X_repr)
+        elif self.kernel_type == 'rbf':
+            K = self.rbf_kernel(X, self.X_repr)
+        elif self.kernel_type == 'poly':
+            K = self.poly_kernel(X, self.X_repr)
+        else:
+            raise ValueError('Invalid kernel function')
+        return (1 + np.exp(-K @ self.alpha) < 2).astype(int)
+
+    def accuracy(self, X: Array, y: Array) -> float:
+        # X: feature matrix
+        # y: labels
+        # return: accuracy
+        return np.mean(self.predict(X) == y).round(5)
+
+    def cv_train(self, X: Array, y: Array, lambdas: [float], k: int, kernel: str = 'linear') -> None:
+        # X: feature matrix
+        # y: labels
+        # lamb: penalty parameter
+        # k: number of folds
+        # kernel: kernel function
+        # fit KLR model using cross-validation
+        CV_accuracies = []
+        for lamb in lambdas:
+            test_accuracy = 0
+            # split data into k folds
+            n = len(y)
+            fold_size = n // k
+            for i in range(k):
+                # split data into train and test sets
+                test_indices = list(range(i * fold_size, (i + 1) * fold_size))
+                train_indices = list(set(range(n)) - set(test_indices))
+                X_tr, y_tr = X[train_indices], y[train_indices]
+                X_te, y_te = X[test_indices], y[test_indices]
+                # train model
+                self.train(X_tr, y_tr, kernel, lamb)
+                # calculate accuracy
+                test_accuracy += self.accuracy(X_te, y_te)
+            # calculate average accuracy
+            CV_accuracies.append(test_accuracy / k)
+        # select lambda with highest accuracy
+        self.lamb = lambdas[np.argmax(CV_accuracies)]
+        # train model using selected lambda
+        self.train(X, y, kernel, self.lamb)
+
+    def __str__(self) -> str:
+        return (f'KernelLogisticRegression(\n'
+                f'kernel_type={self.kernel_type})')
 
 
 if __name__ == '__main__':
@@ -255,16 +384,16 @@ if __name__ == '__main__':
 
     # part a
     # train penalized logistic regression
-    print(f"""{"="*70}\n"""
-          f"""Penalized Logistic Regression\n""" 
-          f"""{"-"*70}""")
-    plr = PenalizedLogisticReg()
-    plr.cv_train(X_train, y_train, [0.0000001, 0.000001, 0.00001], 10)
-    print(f"Train accuracy on data: {round(plr.accuracy(X_train, y_train) * 100, 3)}%\n"
-          f"Test accuracy on data: {round(plr.accuracy(X_test, y_test) * 100, 3)}%")
-    plr.cv_train(log_X_train, y_train, [0.1, 1, 10], 10)
-    print(f"Train accuracy on log transformed data: {round(plr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
-          f"Test accuracy on log transformed data: {round(plr.accuracy(log_X_test, y_test) * 100, 3)}%")
+    # print(f"""{"="*70}\n"""
+    #       f"""Penalized Logistic Regression\n"""
+    #       f"""{"-"*70}""")
+    # plr = PenalizedLogisticReg()
+    # plr.cv_train(X_train, y_train, [0.0000001, 0.000001, 0.00001], 10)
+    # print(f"Train accuracy on data: {round(plr.accuracy(X_train, y_train) * 100, 3)}%\n"
+    #       f"Test accuracy on data: {round(plr.accuracy(X_test, y_test) * 100, 3)}%")
+    # plr.cv_train(log_X_train, y_train, [0.1, 1, 10], 10)
+    # print(f"Train accuracy on log transformed data: {round(plr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
+    #       f"Test accuracy on log transformed data: {round(plr.accuracy(log_X_test, y_test) * 100, 3)}%")
 
     # part b
     # train LDA classifier
@@ -289,3 +418,31 @@ if __name__ == '__main__':
           f"Test accuracy on discrete transformed data: {round(nbc.accuracy(discrete_X_test, y_test) * 100, 3)}%")
 
     # part d
+    print(f"""{"="*70}\n"""
+          f"""Kernel Logistic Regression\n""" 
+          f"""{"-"*70}""")
+    klr = KernelLogisticRegression()
+    klr.cv_train(centered_X_train, y_train, [0.00001, 0.0001, 0.001], 10, 'rbf')
+    print(klr.lamb)
+    print(f"Train accuracy on centered data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(centered_X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on centered data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(centered_X_test, y_test) * 100, 3)}%")
+    klr.cv_train(log_X_train, y_train, [0.00001, 0.0001, 0.001], 10, 'rbf')
+    print(klr.lamb)
+    print(f"Train accuracy on log transformed data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on log transformed data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(log_X_test, y_test) * 100, 3)}%")
+    klr.cv_train(centered_X_train, y_train, [0.00001, 0.0001, 0.001], 10, 'poly')
+    print(klr.lamb)
+    print(f"Train accuracy on centered data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(centered_X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on centered data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(centered_X_test, y_test) * 100, 3)}%")
+    klr.cv_train(log_X_train, y_train, [0.00001, 0.0001, 0.001], 10, 'poly')
+    print(klr.lamb)
+    print(f"Train accuracy on log transformed data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(log_X_train, y_train) * 100, 3)}%\n"
+          f"Test accuracy on log transformed data with {klr.kernel_type} kernel: "
+          f"{round(klr.accuracy(log_X_test, y_test) * 100, 3)}%")
